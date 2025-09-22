@@ -6,7 +6,7 @@ import json
 from io import BytesIO
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for
 from flask_cors import CORS
 from oauth2client.service_account import ServiceAccountCredentials
 from email.mime.multipart import MIMEMultipart
@@ -15,7 +15,7 @@ from email.mime.image import MIMEImage
 
 # --- INISIALISASI ---
 load_dotenv()
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
 # --- KONFIGURASI ---
@@ -23,29 +23,33 @@ SHEET_ID = os.getenv("SHEET_ID")
 SHEET_NAME = os.getenv("SHEET_NAME")
 APP_URL = os.getenv("APP_URL")
 SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = int(os.getenv("SMTP_PORT"))
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587)) # Menambahkan nilai default
 SMTP_SENDER_EMAIL = os.getenv("SMTP_SENDER_EMAIL")
 SMTP_SENDER_PASSWORD = os.getenv("SMTP_SENDER_PASSWORD")
 LAB_HEAD_EMAIL = os.getenv("LAB_HEAD_EMAIL")
 
-# --- KONEKSI GOOGLE SHEETS ---
+# --- KONEKSI GOOGLE SHEETS (DENGAN PERBAIKAN UNTUK VERCEL) ---
 try:
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']\
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    
     creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON")
     if not creds_json_str:
         raise ValueError("Environment variable GOOGLE_CREDENTIALS_JSON tidak ditemukan.")
+        
     creds_dict = json.loads(creds_json_str)
+    
+    # Perbaikan untuk format private_key di Vercel
     if 'private_key' in creds_dict:
         creds_dict['private_key'] = creds_dict['private_key'].replace('\\n', '\n')
+
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
     print("Berhasil terhubung ke Google Sheets.")
 except Exception as e:
     print(f"GAGAL KONEK KE GOOGLE SHEETS: {e}")
-    exit()
 
-# --- FUNGSI HELPER & TEMPLATE EMAIL (Tidak ada perubahan signifikan) ---
+# --- FUNGSI HELPER & TEMPLATE EMAIL ---
 def time_to_minutes(time_str):
     if isinstance(time_str, str) and ':' in time_str:
         h, m = map(int, time_str.split(':'))
@@ -111,7 +115,11 @@ def create_rejected_email_body(data):
 
 # --- ENDPOINTS / ROUTES ---
 
-@app.route('dashboard')
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
 
@@ -121,11 +129,10 @@ def scan_qr():
 
 @app.route('/login')
 def login():
-    return render_template('test_login.html')
+    return render_template('login.html')
 
 @app.route('/booking')
 def booking_form():
-    """Menampilkan halaman form booking."""
     return render_template('index.html')
 
 @app.route('/api/getBookedSlots', methods=['GET'])
@@ -140,7 +147,6 @@ def get_booked_slots():
 
 @app.route('/api/getDashboardData', methods=['GET'])
 def get_dashboard_data():
-    """Endpoint untuk menyediakan semua data booking untuk dashboard."""
     try:
         all_records = sheet.get_all_records()
         clean_records = [record for record in all_records if record.get('ID Baris')]
@@ -224,7 +230,6 @@ def handle_action(action):
             message = f"Check-in atas nama {user_data['nama']} untuk jadwal {tanggal}, {user_data['waktuMulai']} - {user_data['waktuSelesai']} telah berhasil."
             return render_template('konfirmasi.html', message=message, status="sukses")
         
-        # --- ROUTE BARU UNTUK CHECKOUT ---
         elif action == 'checkout':
             sheet.update_cell(cell.row, status_col, "Selesai")
             message = f"Check-out atas nama {user_data['nama']} telah berhasil. Terima kasih!"
