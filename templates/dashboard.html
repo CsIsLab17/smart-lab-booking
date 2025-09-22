@@ -4,21 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Utilization Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <!-- PERBAIKAN: Menggunakan url_for untuk semua file statis -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
 <body>
     <div class="header">
         <div class="header-left">
-            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Logo" class="logo">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
             <h1>Lab Utilization Dashboard</h1>
         </div>
         <div class="header-right">
-            <a href="{{ url_for('booking') }}">Booking</a>
+            <a href="{{ url_for('booking_form') }}">Booking</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
             <a href="{{ url_for('login') }}">Admin</a>
         </div>
     </div>
+
     <div class="container">
+        <!-- ... (Sisa konten dashboard Anda tidak berubah) ... -->
         <div class="row">
             <div class="widget full-width">
                 <h2>Current Lab Status</h2>
@@ -28,7 +32,6 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="widget">
                 <h2>Booking Purpose Distribution</h2>
@@ -43,7 +46,6 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="widget full-width">
                 <h2>Peak Hours Analysis</h2>
@@ -52,7 +54,6 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="widget full-width">
                 <h2>Recent Bookings (Approved)</h2>
@@ -67,7 +68,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -75,6 +76,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="dashboard.js"></script>
+    <!-- PERBAIKAN: Menggunakan url_for untuk file JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

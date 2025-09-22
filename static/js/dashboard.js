@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const API_URL = 'http://127.0.0.1:5000/api/getDashboardData';
-    let charts = {}; // Object to hold chart instances for updates
+    // PERBAIKAN: Menghapus URL absolut dan menggunakan URL relatif
+    const API_URL = '/api/getDashboardData';
 
-    // Fungsi utama untuk mengambil data dan me-render dashboard
+    let charts = {};
+
     async function updateDashboard() {
         try {
             const response = await fetch(API_URL);
@@ -23,16 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Fungsi untuk me-render status lab saat ini
     function renderCurrentStatus(data) {
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
         const todayStr = now.toISOString().split('T')[0];
 
         const currentUser = data.find(booking => {
-            const bookingDate = booking['Tanggal Booking'];
-            const status = booking['Status'];
-            if (bookingDate !== todayStr || status !== 'Disetujui') {
+            // PERBAIKAN: Memastikan semua properti ada sebelum diakses
+            const bookingDate = booking ? booking['Tanggal Booking'] : null;
+            const status = booking ? booking['Status'] : null;
+            if (bookingDate !== todayStr || (status !== 'Disetujui' && status !== 'Datang')) {
                 return false;
             }
             const startTime = timeToMinutes(booking['Waktu Mulai']);
@@ -50,16 +51,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Fungsi untuk me-render grafik tujuan booking
     function renderPurposeChart(data) {
         const ctx = document.getElementById('purposeChart').getContext('2d');
         const purposes = data.filter(b => b.Status === 'Disetujui').map(b => b['Booking Purpose']);
         const purposeCounts = purposes.reduce((acc, purpose) => {
-            acc[purpose] = (acc[purpose] || 0) + 1;
+            if (purpose) {
+                acc[purpose] = (acc[purpose] || 0) + 1;
+            }
             return acc;
         }, {});
 
-        if (charts.purpose) charts.purpose.destroy(); // Hancurkan chart lama sebelum membuat yang baru
+        if (charts.purpose) charts.purpose.destroy();
         charts.purpose = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -73,15 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Fungsi untuk me-render grafik booking harian
     function renderDailyChart(data) {
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const dailyCounts = Array(7).fill(0);
         
         data.filter(b => b.Status === 'Disetujui').forEach(booking => {
-            const dayIndex = new Date(booking['Tanggal Booking']).getDay();
-            dailyCounts[dayIndex]++;
+            if (booking['Tanggal Booking']) {
+                const dayIndex = new Date(booking['Tanggal Booking']).getDay();
+                dailyCounts[dayIndex]++;
+            }
         });
 
         if (charts.daily) charts.daily.destroy();
@@ -105,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Fungsi untuk me-render grafik jam sibuk
     function renderHourlyChart(data) {
         const ctx = document.getElementById('hourlyChart').getContext('2d');
         const hourlyCounts = {};
@@ -114,12 +116,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         data.filter(b => b.Status === 'Disetujui').forEach(booking => {
-            const startHour = parseInt(booking['Waktu Mulai'].split(':')[0]);
-            const endHour = parseInt(booking['Waktu Selesai'].split(':')[0]);
-            for (let hour = startHour; hour < endHour; hour++) {
-                const hourKey = `${String(hour).padStart(2, '0')}:00`;
-                if(hourlyCounts.hasOwnProperty(hourKey)) {
-                    hourlyCounts[hourKey]++;
+            if (booking['Waktu Mulai'] && booking['Waktu Selesai']) {
+                const startHour = parseInt(booking['Waktu Mulai'].split(':')[0]);
+                const endHour = parseInt(booking['Waktu Selesai'].split(':')[0]);
+                for (let hour = startHour; hour < endHour; hour++) {
+                    const hourKey = `${String(hour).padStart(2, '0')}:00`;
+                    if(hourlyCounts.hasOwnProperty(hourKey)) {
+                        hourlyCounts[hourKey]++;
+                    }
                 }
             }
         });
@@ -146,38 +150,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Fungsi untuk mengisi tabel
     function renderBookingTable(data) {
         const tableBody = document.querySelector('#bookingTable tbody');
-        tableBody.innerHTML = ''; // Kosongkan tabel
+        tableBody.innerHTML = '';
         
-        // Ambil 10 booking terbaru yang disetujui
         const recentBookings = data
-            .filter(b => b.Status === 'Disetujui')
+            .filter(b => b.Status === 'Disetujui' && b.Timestamp)
             .sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']))
             .slice(0, 10);
             
         recentBookings.forEach(booking => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${booking['Nama']}</td>
-                <td>${booking['Tanggal Booking']}</td>
-                <td>${booking['Waktu Mulai']} - ${booking['Waktu Selesai']}</td>
-                <td>${booking['Booking Purpose']}</td>
+                <td>${booking['Nama'] || ''}</td>
+                <td>${booking['Tanggal Booking'] || ''}</td>
+                <td>${(booking['Waktu Mulai'] || '')} - ${(booking['Waktu Selesai'] || '')}</td>
+                <td>${booking['Booking Purpose'] || ''}</td>
             `;
             tableBody.appendChild(row);
         });
     }
 
-    // Helper untuk mengubah waktu ke menit
     function timeToMinutes(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return 0;
         const [hours, minutes] = timeStr.split(':').map(Number);
         return hours * 60 + minutes;
     }
 
-    // Panggil update pertama kali
     updateDashboard();
-    
-    // Set interval untuk memperbarui dashboard setiap 30 detik (30000 ms)
     setInterval(updateDashboard, 30000);
 });

@@ -1,0 +1,10 @@
+# Abaikan file kredensial Google
+credentials.json
+
+# Abaikan file konfigurasi sensitif
+.env
+
+# Abaikan folder yang dihasilkan oleh Python
+__pycache__/
+venv/
+*.pyc
