@@ -2,6 +2,7 @@ import os
 import gspread
 import smtplib
 import qrcode
+import json
 from io import BytesIO
 from datetime import datetime
 from dotenv import load_dotenv
