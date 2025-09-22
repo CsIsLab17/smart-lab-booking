@@ -1,5 +1,5 @@
 // --- KONFIGURASI ---
-const BASE_URL = "http://127.0.0.1:5000";
+// VARIABEL BASE_URL DIHAPUS AGAR MENGGUNAKAN URL RELATIF
 
 // --- ELEMEN DOM ---
 const form = document.getElementById('bookingForm');
@@ -34,7 +34,8 @@ async function fetchBookedSlots(date) {
     statusMessage.className = '';
     submitButton.disabled = true;
     try {
-        const response = await fetch(`${BASE_URL}/api/getBookedSlots?tanggal=${date}`);
+        // PERBAIKAN: Menggunakan URL relatif
+        const response = await fetch(`/api/getBookedSlots?tanggal=${date}`);
         const result = await response.json();
         if (result.status === 'sukses') {
             bookedSlotsForSelectedDate = result.data.map(slot => ({
@@ -54,16 +55,12 @@ async function fetchBookedSlots(date) {
     }
 }
 
-// ======================================================================
-// FUNGSI DIPERBARUI: populateTimeSlots dengan validasi waktu lampau
-// ======================================================================
 function populateTimeSlots() {
     const lastSelectedStart = waktuMulaiSelect.value;
     const lastSelectedEnd = waktuSelesaiSelect.value;
     waktuMulaiSelect.innerHTML = '<option value="">Select Time</option>';
     waktuSelesaiSelect.innerHTML = '<option value="">Select Time</option>';
 
-    // Dapatkan tanggal dan waktu saat ini untuk perbandingan
     const now = new Date();
     const currentDateStr = now.toISOString().split('T')[0];
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -78,7 +75,6 @@ function populateTimeSlots() {
         const timeString = `${hours}:${minutes}`;
         const slotTimeInMinutes = i;
 
-        // Cek apakah slot sudah dibooking
         let isBooked = false;
         for (const slot of bookedSlotsForSelectedDate) {
             if (slotTimeInMinutes >= slot.start && slotTimeInMinutes < slot.end) {
@@ -87,18 +83,15 @@ function populateTimeSlots() {
             }
         }
 
-        // LOGIKA BARU: Cek apakah waktu slot sudah terlewat untuk hari ini
         let isPastTime = false;
         if (isToday && slotTimeInMinutes < currentMinutes) {
             isPastTime = true;
         }
 
-        // Logika untuk dropdown Waktu Mulai
         if (i < endTime) {
             const startOption = new Option(timeString, timeString);
             if (isBooked || isPastTime) {
                 startOption.disabled = true;
-                // Beri label yang sesuai kenapa nonaktif
                 if (isBooked) {
                     startOption.innerText = `${timeString} (Booked)`;
                 } else if (isPastTime) {
@@ -108,10 +101,9 @@ function populateTimeSlots() {
             waktuMulaiSelect.add(startOption);
         }
 
-        // Logika untuk dropdown Waktu Selesai
         if (i > startTime) {
             const endOption = new Option(timeString, timeString);
-            let isEndBooked = false; // Cek agar tidak bisa memilih waktu selesai di tengah booking orang
+            let isEndBooked = false;
             for (const slot of bookedSlotsForSelectedDate) {
                 if (slotTimeInMinutes > slot.start && slotTimeInMinutes <= slot.end) {
                     isEndBooked = true;
@@ -119,9 +111,8 @@ function populateTimeSlots() {
                 }
             }
             
-            // Waktu selesai juga tidak boleh waktu yang sudah lewat
             let isEndPastTime = false;
-            if (isToday && slotTimeInMinutes <= currentMinutes) { // Waktu selesai bisa pas dengan waktu sekarang
+            if (isToday && slotTimeInMinutes <= currentMinutes) {
                 isEndPastTime = true;
             }
 
@@ -141,16 +132,6 @@ function populateTimeSlots() {
     validateForm();
 }
 
-
-function validateForm() { /* ... (tidak berubah dari sebelumnya) ... */ }
-document.addEventListener('DOMContentLoaded', () => { /* ... (tidak berubah dari sebelumnya) ... */ });
-tanggalBookingInput.addEventListener('change', function() { /* ... (tidak berubah dari sebelumnya) ... */ });
-form.addEventListener('input', validateForm);
-purposeSelect.addEventListener('change', function() { /* ... (tidak berubah dari sebelumnya) ... */ });
-form.addEventListener('submit', function(e) { /* ... (tidak berubah dari sebelumnya) ... */ });
-
-
-// KODE LENGKAP UNTUK FUNGSI YANG DISINGKAT DI ATAS (UNTUK REFERENSI)
 function validateForm() {
     let allValid = true;
     let message = 'Time slot is available. Ready to submit.';
@@ -204,15 +185,18 @@ function validateForm() {
         }
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     tanggalBookingInput.setAttribute('min', todayStr);
     populateTimeSlots();
 });
+
 tanggalBookingInput.addEventListener('change', function() {
     fetchBookedSlots(this.value);
 });
+
 purposeSelect.addEventListener('change', function() {
     if (this.value === 'Other') {
         otherPurposeContainer.classList.remove('hidden');
@@ -224,6 +208,7 @@ purposeSelect.addEventListener('change', function() {
     }
     validateForm();
 });
+
 form.addEventListener('submit', function(e) {
     e.preventDefault();
     validateForm(); 
@@ -233,7 +218,8 @@ form.addEventListener('submit', function(e) {
     }
     submitButton.disabled = true;
     submitButton.innerText = "Sending...";
-    fetch(`${BASE_URL}/api/submitBooking`, {
+    // PERBAIKAN: Menggunakan URL relatif
+    fetch(`/api/submitBooking`, {
         method: 'POST',
         body: new FormData(form)
     })
