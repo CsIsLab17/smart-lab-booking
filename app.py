@@ -23,33 +23,33 @@ SHEET_ID = os.getenv("SHEET_ID")
 SHEET_NAME = os.getenv("SHEET_NAME")
 APP_URL = os.getenv("APP_URL")
 SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587)) # Menambahkan nilai default
+SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_SENDER_EMAIL = os.getenv("SMTP_SENDER_EMAIL")
 SMTP_SENDER_PASSWORD = os.getenv("SMTP_SENDER_PASSWORD")
 LAB_HEAD_EMAIL = os.getenv("LAB_HEAD_EMAIL")
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON")
 
-# --- KONEKSI GOOGLE SHEETS (DENGAN PERBAIKAN UNTUK VERCEL) ---
-try:
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    
-    creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON")
-    if not creds_json_str:
-        raise ValueError("Environment variable GOOGLE_CREDENTIALS_JSON tidak ditemukan.")
+# --- PERBAIKAN: Fungsi untuk mendapatkan koneksi sheet ---
+def get_sheet():
+    try:
+        if not GOOGLE_CREDENTIALS_JSON:
+            raise ValueError("Environment variable GOOGLE_CREDENTIALS_JSON tidak ditemukan.")
+
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
         
-    creds_dict = json.loads(creds_json_str)
-    
-    # Perbaikan untuk format private_key di Vercel
-    if 'private_key' in creds_dict:
-        creds_dict['private_key'] = creds_dict['private_key'].replace('\\n', '\n')
+        if 'private_key' in creds_dict:
+            creds_dict['private_key'] = creds_dict['private_key'].replace('\\n', '\n')
 
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    client = gspread.authorize(creds)
-    sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
-    print("Berhasil terhubung ke Google Sheets.")
-except Exception as e:
-    print(f"GAGAL KONEK KE GOOGLE SHEETS: {e}")
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
+        return sheet
+    except Exception as e:
+        print(f"GAGAL KONEK KE GOOGLE SHEETS: {e}")
+        return None
 
-# --- FUNGSI HELPER & TEMPLATE EMAIL ---
+# --- FUNGSI HELPER & TEMPLATE EMAIL (Tidak ada perubahan) ---
 def time_to_minutes(time_str):
     if isinstance(time_str, str) and ':' in time_str:
         h, m = map(int, time_str.split(':'))
@@ -57,26 +57,28 @@ def time_to_minutes(time_str):
     return 0
 
 def send_email(to_address, subject, html_body, qr_image_bytes=None):
-    msg = MIMEMultipart('related')
-    msg['From'] = f"Booking Lab Sampoerna <{SMTP_SENDER_EMAIL}>"
-    msg['To'] = to_address
-    msg['Subject'] = subject
-    msg_alternative = MIMEMultipart('alternative')
-    msg.attach(msg_alternative)
-    msg_text = MIMEText(html_body, 'html')
-    msg_alternative.attach(msg_text)
-    if qr_image_bytes:
-        qr_image = MIMEImage(qr_image_bytes, name='qrcode.png')
-        qr_image.add_header('Content-ID', '<qr_code_image>')
-        msg.attach(qr_image)
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        port = int(SMTP_PORT or 587)
+        msg = MIMEMultipart('related')
+        msg['From'] = f"Booking Lab Sampoerna <{SMTP_SENDER_EMAIL}>"
+        msg['To'] = to_address
+        msg['Subject'] = subject
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+        msg_text = MIMEText(html_body, 'html')
+        msg_alternative.attach(msg_text)
+        if qr_image_bytes:
+            qr_image = MIMEImage(qr_image_bytes, name='qrcode.png')
+            qr_image.add_header('Content-ID', '<qr_code_image>')
+            msg.attach(qr_image)
+        with smtplib.SMTP(SMTP_SERVER, port) as server:
             server.starttls()
             server.login(SMTP_SENDER_EMAIL, SMTP_SENDER_PASSWORD)
             server.send_message(msg)
     except Exception as e:
         print(f"Gagal mengirim email: {e}")
 
+# ... (Salin semua fungsi create_email_body Anda ke sini, tanpa perubahan)
 def create_approval_email_body(data, row_id):
     approve_url = f"{APP_URL}/approve?id={row_id}"
     reject_url = f"{APP_URL}/reject?id={row_id}"
@@ -137,6 +139,9 @@ def booking_form():
 
 @app.route('/api/getBookedSlots', methods=['GET'])
 def get_booked_slots():
+    sheet = get_sheet()
+    if not sheet:
+        return jsonify({'status': 'gagal', 'message': 'Koneksi ke database gagal'}), 500
     try:
         tanggal = request.args.get('tanggal')
         if not tanggal: return jsonify({'status': 'gagal', 'message': 'Parameter tanggal tidak ditemukan'}), 400
@@ -147,6 +152,9 @@ def get_booked_slots():
 
 @app.route('/api/getDashboardData', methods=['GET'])
 def get_dashboard_data():
+    sheet = get_sheet()
+    if not sheet:
+        return jsonify({'status': 'gagal', 'message': 'Koneksi ke database gagal'}), 500
     try:
         all_records = sheet.get_all_records()
         clean_records = [record for record in all_records if record.get('ID Baris')]
@@ -156,6 +164,9 @@ def get_dashboard_data():
 
 @app.route('/api/submitBooking', methods=['POST'])
 def handle_form_submission():
+    sheet = get_sheet()
+    if not sheet:
+        return jsonify({'status': 'gagal', 'message': 'Koneksi ke database gagal'}), 500
     try:
         data = request.form.to_dict()
         all_records = sheet.get_all_records()
@@ -190,6 +201,10 @@ def handle_form_submission():
 
 @app.route('/<action>', methods=['GET'])
 def handle_action(action):
+    sheet = get_sheet()
+    if not sheet:
+        return render_template('konfirmasi.html', message="Koneksi ke database gagal.", status="gagal"), 500
+
     row_id = request.args.get('id')
     if not row_id: return "Error: ID tidak ditemukan.", 400
 
