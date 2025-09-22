@@ -1,0 +1,42 @@
+/* --- File ini HANYA untuk styling header navigasi --- */
+.header {
+    background: #002169;
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: opacity 0.2s;
+}
+
+.header-right a:hover {
+    opacity: 0.8;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 20px;
+}
+
+/* Memastikan h1 di dalam header selalu putih dan rata kiri */
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: white !important;
+    text-align: left;
+    border: none;
+}
