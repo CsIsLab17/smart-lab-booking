@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Check-in - Sampoerna University</title>
-    <!-- PERBAIKAN: Menggunakan url_for untuk memuat file CSS -->
+    <!-- Memuat file CSS yang relevan -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
-<body>
+<!-- Menambahkan kelas scanner-body ke body -->
+<body class="scanner-body">
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
@@ -22,23 +23,21 @@
     </div>
 
     <!-- Konten pemindai QR -->
-    <div class="scanner-body">
-      <div class="container">
-          <h1>Scan untuk Check-in</h1>
-          <p>Arahkan QR Code dari email Anda ke area pemindai di bawah ini.</p>
-          <div id="reader"></div>
-          <div id="result-container">
-              <h2>Status</h2>
-              <div id="result">Menunggu pemindaian...</div>
-          </div>
-          <div id="checkout-container" style="display: none; margin-top: 20px;">
-              <button id="checkoutButton">Check Out</button>
-          </div>
-      </div>
+    <div class="container-scanner">
+        <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo Sampoerna University" class="logo-scanner">
+        <h1>Scan untuk Check-in</h1>
+        <p>Arahkan QR Code dari email Anda ke area pemindai di bawah ini.</p>
+        <div id="reader"></div>
+        <div id="result-container">
+            <h2>Status</h2>
+            <div id="result">Menunggu pemindaian...</div>
+        </div>
+        <div id="checkout-container" style="display: none; margin-top: 20px;">
+            <button id="checkoutButton" class="btn-checkout">Check Out</button>
+        </div>
     </div>
     
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <!-- PERBAIKAN: Menggunakan url_for untuk memuat file JavaScript -->
     <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
 </body>
 </html>
