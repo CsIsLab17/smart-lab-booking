@@ -4,23 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Check-in - Sampoerna University</title>
-    <link rel="stylesheet" href="scanner.css">
+    <!-- PERBAIKAN: Menggunakan url_for untuk memuat file CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
 <body>
-    <div class="container">
-        <img src="../Lab regist/static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Logo Sampoerna University" class="logo">
-        <h1>Scan untuk Check-in</h1>
-        <p>Arahkan QR Code dari email Anda ke area pemindai di bawah ini.</p>
-        <div id="reader"></div>
-        <div id="result-container">
-            <h2>Status</h2>
-            <div id="result">Menunggu pemindaian...</div>
+    <div class="header">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
+            <h1>QR Scanner</h1>
         </div>
-        <div id="checkout-container" style="display: none; margin-top: 20px;">
-            <button id="checkoutButton">Check Out</button>
+        <div class="header-right">
+            <a href="{{ url_for('booking_form') }}">Booking</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('login') }}">Admin</a>
         </div>
     </div>
+
+    <!-- Konten pemindai QR -->
+    <div class="scanner-body">
+      <div class="container">
+          <h1>Scan untuk Check-in</h1>
+          <p>Arahkan QR Code dari email Anda ke area pemindai di bawah ini.</p>
+          <div id="reader"></div>
+          <div id="result-container">
+              <h2>Status</h2>
+              <div id="result">Menunggu pemindaian...</div>
+          </div>
+          <div id="checkout-container" style="display: none; margin-top: 20px;">
+              <button id="checkoutButton">Check Out</button>
+          </div>
+      </div>
+    </div>
+    
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="scanner.js"></script>
+    <!-- PERBAIKAN: Menggunakan url_for untuk memuat file JavaScript -->
+    <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
 </body>
 </html>
