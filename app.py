@@ -30,12 +30,19 @@ LAB_HEAD_EMAIL = os.getenv("LAB_HEAD_EMAIL")
 
 # --- KONEKSI GOOGLE SHEETS ---
 try:
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']\
+    creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if not creds_json_str:
+        raise ValueError("Environment variable GOOGLE_CREDENTIALS_JSON tidak ditemukan.")
+    creds_dict = json.loads(creds_json_str)
+    if 'private_key' in creds_dict:
+        creds_dict['private_key'] = creds_dict['private_key'].replace('\\n', '\n')
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
+    print("Berhasil terhubung ke Google Sheets.")
 except Exception as e:
-    print(f"GAGAL KONEK KE GOOGLE SHEETS: Pastikan file 'credentials.json' ada dan sudah di-share. Error: {e}")
+    print(f"GAGAL KONEK KE GOOGLE SHEETS: {e}")
     exit()
 
 # --- FUNGSI HELPER & TEMPLATE EMAIL (Tidak ada perubahan signifikan) ---
