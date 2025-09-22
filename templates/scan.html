@@ -2,10 +2,14 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Scanner Check-in</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Check-in - Sampoerna University</title>
+    <!-- Memuat file CSS yang relevan -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
-<body class="scanner-page">
+<!-- Menambahkan kelas scanner-body ke body -->
+<body class="scanner-body">
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
