@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Booking Form - Sampoerna University</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Logo" class="logo">
+            <h1>Lab Booking Form</h1>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('scan') }}">Scan QR</a>
+            <a href="{{ url_for('login') }}">Admin</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="logo-container">
+            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Sampoerna University Logo">
+        </div>
+
+        <div class="rules">
+            <h2>1. Rules and Regulations:</h2>
+            <h4>1. Lab Space Booking:</h4>
+            <ol><li>All bookings must be made in advance using this form. Walk-in requests will be considered if the lab is available, but priority will be given to those who have made prior reservations.</li></ol>
+            <h4>2. Booking Duration:</h4>
+            <ol>
+                <li>The maximum booking duration is 2 hours for regular use.</li>
+                <li>Extensions may be requested but will be subject to availability and approval from the lab supervisor.</li>
+            </ol>
+            <h4>3. Booking Cancellation:</h4>
+            <ol><li>If you need to cancel your booking, please inform the laboratory staff at least 1 day in advance. Failure to do so may impact your ability to book future sessions.</li></ol>
+            <h4>4. Lab Equipment Usage:</h4>
+            <ol>
+                <li>No equipment rentals are allowed for external use. All equipment should only be used within the lab during the booked session.</li>
+                <li>All lab equipment (e.g., computers, networking devices, routers) must be handled with care. Follow all safety and usage guidelines provided by the lab staff.</li>
+                <li>Any damage or malfunction of equipment must be immediately reported to the lab supervisor.</li>
+            </ol>
+            <h4>5. Behavioral Expectations:</h4>
+            <ol>
+                <li>Users must maintain a quiet, respectful environment in the lab to ensure productivity for all.</li>
+                <li>No food or drinks are allowed in the lab.</li>
+                <li>Users are expected to clean up after themselves and leave the lab in good condition for the next user.</li>
+            </ol>
+        </div>
+        <hr>
+
+        <h2>Registration Form</h2>
+        <form id="bookingForm" novalidate>
+            <label for="nama">Full Name:</label>
+            <input type="text" id="nama" name="nama" required pattern="[A-Za-z\s]+">
+            
+            <label for="idPengguna">NIM / User ID:</label>
+            <input type="tel" id="idPengguna" name="idPengguna" required pattern="[0-9]+">
+            
+            <label for="emailPengguna">Email Address:</label>
+            <input type="email" id="emailPengguna" name="emailPengguna" required placeholder="e.g., your.name@my.sampoernauniversity.ac.id">
+            
+            <label for="tanggalBooking">Booking Date:</label>
+            <input type="date" id="tanggalBooking" name="tanggalBooking" required>
+            
+            <div class="time-container">
+                <div>
+                    <label for="waktuMulai">Start Time:</label>
+                    <select id="waktuMulai" name="waktuMulai" required></select>
+                </div>
+                <div>
+                    <label for="waktuSelesai">End Time:</label>
+                    <select id="waktuSelesai" name="waktuSelesai" required></select>
+                </div>
+            </div>
+
+            <label for="bookingPurpose">Booking Purpose:</label>
+            <select id="bookingPurpose" name="bookingPurpose" required>
+                <option value="">-- Select a purpose --</option>
+                <option value="Class Related">Class Related</option>
+                <option value="Research">Research</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <div id="other-purpose-container" class="hidden">
+                <label for="otherPurpose">Please specify other purpose:</label>
+                <input type="text" id="otherPurpose" name="otherPurpose">
+            </div>
+            
+            <button type="submit" id="submitButton" disabled>Send Booking Request</button>
+        </form>
+        <div id="statusMessage">Select a date to see available time slots.</div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

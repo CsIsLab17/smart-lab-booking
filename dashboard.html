@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Utilization Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Logo" class="logo">
+            <h1>Lab Utilization Dashboard</h1>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('booking') }}">Booking</a>
+            <a href="{{ url_for('scan') }}">Scan QR</a>
+            <a href="{{ url_for('login') }}">Admin</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="widget full-width">
+                <h2>Current Lab Status</h2>
+                <div id="current-status" class="status-free">
+                    <span class="status-icon">✅</span>
+                    <span class="status-text">The lab is currently free.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="widget">
+                <h2>Booking Purpose Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="purposeChart"></canvas>
+                </div>
+            </div>
+            <div class="widget">
+                <h2>Daily Booking Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="widget full-width">
+                <h2>Peak Hours Analysis</h2>
+                <div class="chart-container-large">
+                     <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="widget full-width">
+                <h2>Recent Bookings (Approved)</h2>
+                <div class="table-container">
+                    <table id="bookingTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

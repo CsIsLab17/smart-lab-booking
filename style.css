@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f8ff; 
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --- GAYA CSS UNTUK HEADER --- */
+.header {
+    background: #002169;
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: opacity 0.2s;
+}
+
+.header-right a:hover {
+    opacity: 0.8;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+/* --- AKHIR GAYA HEADER --- */
+
+/* --- KODE ASLI UNTUK FORM (TIDAK BERUBAH) --- */
+.container {
+    max-width: 700px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px 40px 40px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
+}
+.logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.logo-container img {
+    max-width: 200px;
+}
+h2 {
+    text-align: center;
+    color: #0033A0;
+    margin-bottom: 30px;
+}
+form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+form input, form select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+form input:focus, form select:focus {
+    outline: none;
+    border-color: #0033A0;
+}
+form button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #0033A0, #0055D4);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 51, 160, 0.3);
+}
+form button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+#statusMessage {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+.status-sukses { background-color: #e6f7ff; color: #0055D4; }
+.status-gagal { background-color: #ffe6e6; color: #D4002A; }
+.time-container { display: flex; justify-content: space-between; gap: 20px; }
+.time-container > div { width: 100%; }
+#other-purpose-container.hidden {
+    display: none;
+}

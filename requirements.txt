@@ -1,0 +1,7 @@
+Flask>=2.0
+gspread
+oauth2client
+python-dotenv
+qrcode
+Pillow
+Flask-Cors

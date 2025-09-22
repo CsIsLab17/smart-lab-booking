@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Tindakan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .logo {
+            max-width: 250px;
+            margin-bottom: 40px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border-top: 5px solid #0033A0;
+        }
+        .icon {
+            font-size: 50px;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 25px auto;
+            color: #ffffff;
+        }
+        .icon.success {
+            background-color: #0033A0; /* Biru Sampoerna */
+        }
+        .icon.reject {
+            background-color: #D4002A; /* Merah Sampoerna */
+        }
+        h1 {
+            font-size: 24px;
+            color: #002169;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo Sampoerna University" class="logo">
+    <div class="container">
+        {% if status == 'sukses' %}
+            <div class="icon success">&#10003;</div>
+            <h1>Tindakan Berhasil</h1>
+        {% else %}
+            <div class="icon reject">&#10007;</div>
+            <h1>Tindakan Dikonfirmasi</h1>
+        {% endif %}
+
+        <p>{{ message }}</p>
+
+        <div class="footer">
+            Halaman ini bisa ditutup.
+        </div>
+    </div>
+</body>
+</html>
