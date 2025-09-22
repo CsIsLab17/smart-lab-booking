@@ -3,6 +3,7 @@ import gspread
 import smtplib
 import qrcode
 import json
+import base64 # <-- Library baru untuk Base64
 from io import BytesIO
 from datetime import datetime
 from dotenv import load_dotenv
@@ -27,28 +28,33 @@ SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_SENDER_EMAIL = os.getenv("SMTP_SENDER_EMAIL")
 SMTP_SENDER_PASSWORD = os.getenv("SMTP_SENDER_PASSWORD")
 LAB_HEAD_EMAIL = os.getenv("LAB_HEAD_EMAIL")
-GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON")
+# Variabel baru
+GOOGLE_CREDENTIALS_BASE64 = os.getenv("GOOGLE_CREDENTIALS_BASE64")
 
-# --- PERBAIKAN: Fungsi untuk mendapatkan koneksi sheet ---
+# --- PERBAIKAN FINAL: Fungsi koneksi sheet dengan Base64 ---
 def get_sheet():
     try:
-        if not GOOGLE_CREDENTIALS_JSON:
-            raise ValueError("Environment variable GOOGLE_CREDENTIALS_JSON tidak ditemukan.")
+        if not GOOGLE_CREDENTIALS_BASE64:
+            raise ValueError("Environment variable GOOGLE_CREDENTIALS_BASE64 tidak ditemukan.")
+
+        # Decode Base64 menjadi string JSON asli
+        creds_json_str = base64.b64decode(GOOGLE_CREDENTIALS_BASE64).decode('utf-8')
+        creds_dict = json.loads(creds_json_str)
 
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
-        
-        if 'private_key' in creds_dict:
-            creds_dict['private_key'] = creds_dict['private_key'].replace('\\n', '\n')
-
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
+        print("Berhasil terhubung ke Google Sheets via Base64.")
         return sheet
     except Exception as e:
         print(f"GAGAL KONEK KE GOOGLE SHEETS: {e}")
         return None
 
+# --- Sisa kode Anda tetap sama persis seperti sebelumnya ---
+# (Fungsi helper, template email, dan semua @app.route)
+
+# ... (Pastikan Anda menyalin sisa kode Anda dari file sebelumnya ke sini)
 # --- FUNGSI HELPER & TEMPLATE EMAIL (Tidak ada perubahan) ---
 def time_to_minutes(time_str):
     if isinstance(time_str, str) and ':' in time_str:
@@ -78,7 +84,6 @@ def send_email(to_address, subject, html_body, qr_image_bytes=None):
     except Exception as e:
         print(f"Gagal mengirim email: {e}")
 
-# ... (Salin semua fungsi create_email_body Anda ke sini, tanpa perubahan)
 def create_approval_email_body(data, row_id):
     approve_url = f"{APP_URL}/approve?id={row_id}"
     reject_url = f"{APP_URL}/reject?id={row_id}"
