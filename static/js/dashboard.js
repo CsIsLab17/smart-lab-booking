@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // PERBAIKAN: Menghapus URL absolut dan menggunakan URL relatif
     const API_URL = '/api/getDashboardData';
-
     let charts = {};
 
     async function updateDashboard() {
@@ -12,10 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.status === 'sukses') {
                 const data = result.data;
                 renderCurrentStatus(data);
-                renderPurposeChart(data);
-                renderDailyChart(data);
-                renderHourlyChart(data);
-                renderBookingTable(data);
+                // Memanggil fungsi render dengan data yang sudah difilter
+                const completedBookings = data.filter(b => b.Status === 'Selesai');
+                renderPurposeChart(completedBookings);
+                renderDailyChart(completedBookings);
+                renderHourlyChart(completedBookings);
+                renderBookingTable(completedBookings);
             } else {
                 console.error("Failed to fetch dashboard data:", result.message);
             }
@@ -24,15 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi status lab saat ini tidak berubah, karena harus real-time
     function renderCurrentStatus(data) {
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
         const todayStr = now.toISOString().split('T')[0];
 
         const currentUser = data.find(booking => {
-            // PERBAIKAN: Memastikan semua properti ada sebelum diakses
             const bookingDate = booking ? booking['Tanggal Booking'] : null;
             const status = booking ? booking['Status'] : null;
+            // Status yang dianggap sedang berjalan adalah "Disetujui" atau "Datang"
             if (bookingDate !== todayStr || (status !== 'Disetujui' && status !== 'Datang')) {
                 return false;
             }
@@ -51,9 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function renderPurposeChart(data) {
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
+    function renderPurposeChart(completedData) {
         const ctx = document.getElementById('purposeChart').getContext('2d');
-        const purposes = data.filter(b => b.Status === 'Disetujui').map(b => b['Booking Purpose']);
+        const purposes = completedData.map(b => b['Booking Purpose']);
         const purposeCounts = purposes.reduce((acc, purpose) => {
             if (purpose) {
                 acc[purpose] = (acc[purpose] || 0) + 1;
@@ -75,12 +77,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderDailyChart(data) {
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
+    function renderDailyChart(completedData) {
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const dailyCounts = Array(7).fill(0);
         
-        data.filter(b => b.Status === 'Disetujui').forEach(booking => {
+        completedData.forEach(booking => {
             if (booking['Tanggal Booking']) {
                 const dayIndex = new Date(booking['Tanggal Booking']).getDay();
                 dailyCounts[dayIndex]++;
@@ -93,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: dayNames,
                 datasets: [{
-                    label: 'Bookings per Day',
+                    label: 'Completed Bookings per Day',
                     data: dailyCounts,
                     backgroundColor: '#4D82D6',
                     borderColor: '#0033A0',
@@ -108,14 +111,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function renderHourlyChart(data) {
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
+    function renderHourlyChart(completedData) {
         const ctx = document.getElementById('hourlyChart').getContext('2d');
         const hourlyCounts = {};
         for (let i = 8; i < 17; i++) {
             hourlyCounts[`${String(i).padStart(2, '0')}:00`] = 0;
         }
 
-        data.filter(b => b.Status === 'Disetujui').forEach(booking => {
+        completedData.forEach(booking => {
             if (booking['Waktu Mulai'] && booking['Waktu Selesai']) {
                 const startHour = parseInt(booking['Waktu Mulai'].split(':')[0]);
                 const endHour = parseInt(booking['Waktu Selesai'].split(':')[0]);
@@ -134,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: Object.keys(hourlyCounts),
                 datasets: [{
-                    label: 'Peak Hours',
+                    label: 'Peak Hours (Completed)',
                     data: Object.values(hourlyCounts),
                     backgroundColor: 'rgba(0, 85, 212, 0.2)',
                     borderColor: '#0033A0',
@@ -150,12 +154,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderBookingTable(data) {
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
+    function renderBookingTable(completedData) {
         const tableBody = document.querySelector('#bookingTable tbody');
         tableBody.innerHTML = '';
         
-        const recentBookings = data
-            .filter(b => b.Status === 'Disetujui' && b.Timestamp)
+        const recentBookings = completedData
+            .filter(b => b.Timestamp) // Memastikan ada timestamp untuk diurutkan
             .sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']))
             .slice(0, 10);
             
