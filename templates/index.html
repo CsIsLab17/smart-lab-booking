@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Booking Form - Sampoerna University</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
     <div class="header">
         <div class="header-left">
-            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Logo" class="logo">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
             <h1>Lab Booking Form</h1>
         </div>
         <div class="header-right">
@@ -21,7 +21,7 @@
     </div>
     <div class="container">
         <div class="logo-container">
-            <img src="static/Sampoerna-University-koleksilogo.com_GKL14.png" alt="Sampoerna University Logo">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
         </div>
 
         <div class="rules">
@@ -92,6 +92,6 @@
         </form>
         <div id="statusMessage">Select a date to see available time slots.</div>
     </div>
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

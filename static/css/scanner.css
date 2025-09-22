@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #002169; /* Latar belakang biru tua */
+    color: #e5e7eb;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+}
+.container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.logo {
+    max-width: 200px;
+    margin-bottom: 20px;
+}
+h1 {
+    color: #0033A0;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+#reader {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 3px dashed #0055D4;
+}
+#result-container {
+    margin-top: 24px;
+}
+h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+#result {
+    background-color: #f4f8ff;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.6;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    color: #0033A0;
+}
+#result.processing { border-color: #0055D4; }
+#result.success { background-color: #e6f7ff; border-color: #0033A0; color: #0033A0; }
+#result.error { background-color: #ffe6e6; border-color: #D4002A; color: #D4002A; }
+.icon { font-size: 24px; margin-right: 12px; animation: pop-in 0.5s ease-out; }
+
+@keyframes pop-in {
+    0% { transform: scale(0.5); opacity: 0; }
+    80% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
