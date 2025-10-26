@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+/* Style the body for consistency */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f8ff; /* Default light blue background */
+    color: #333;
+    margin: 0;
+    padding: 0; /* Remove default padding */
+}
+
+/* Login container styles */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto; /* Center the form with space from the header */
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.login-container h2 {
+    text-align: center;
+    color: #0033A0; /* Sampoerna blue */
+    margin-bottom: 30px;
+    font-size: 24px;
+    border: none; /* Override default h2 border if any */
+}
+
+.login-form .form-group {
+    margin-bottom: 20px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    text-align: left;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.login-form input[type="text"]:focus,
+.login-form input[type="password"]:focus {
+    outline: none;
+    border-color: #0033A0; /* Highlight focus */
+}
+
+.btn-login {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #0033A0, #0055D4); /* Gradient blue */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px; /* Space above the button */
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 51, 160, 0.3);
+}
+
+.error-message {
+    color: #D4002A; /* Red for errors */
+    background-color: #ffe6e6;
+    border: 1px solid #D4002A;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 600;
+}
