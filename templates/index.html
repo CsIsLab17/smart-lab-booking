@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Booking Form - Sampoerna University</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-
+    <!-- Header Navigasi -->
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
@@ -16,12 +17,14 @@
         <div class="header-right">
             <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
-            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('login') }}">Admin</a>
         </div>
     </div>
+
+    <!-- Konten Form -->
     <div class="container">
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Sampoerna University Logo">
         </div>
 
         <div class="rules">
@@ -87,11 +90,16 @@
                 <label for="otherPurpose">Please specify other purpose:</label>
                 <input type="text" id="otherPurpose" name="otherPurpose">
             </div>
+
+            <!-- PERTANYAAN BARU DITAMBAHKAN DI SINI -->
+            <label for="jumlahOrang">How many people will come?</label>
+            <input type="number" id="jumlahOrang" name="jumlahOrang" required min="1" value="1" step="1">
             
             <button type="submit" id="submitButton" disabled>Send Booking Request</button>
         </form>
         <div id="statusMessage">Select a date to see available time slots.</div>
     </div>
+    
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
