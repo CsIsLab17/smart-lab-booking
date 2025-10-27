@@ -19,7 +19,8 @@ from email.mime.image import MIMEImage
 load_dotenv()
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
-app.secret_key = os.getenv("SECRET_KEY", "1_eRpOJC1ydXZgdckGjRjquXlRCqjW3EBlHKDgTmjZ98")
+# Secret key for session management (required for login)
+app.secret_key = os.getenv("SECRET_KEY", "LfB@(Vbzdtw5^Fp/q=U4{88y[NOn}<")
 
 # --- CONFIGURATION FROM ENVIRONMENT VARIABLES ---
 # Lab Booking
@@ -38,6 +39,8 @@ SMTP_SENDER_EMAIL = os.getenv("SMTP_SENDER_EMAIL")
 SMTP_SENDER_PASSWORD = os.getenv("SMTP_SENDER_PASSWORD")
 LAB_HEAD_EMAIL = os.getenv("LAB_HEAD_EMAIL")
 GOOGLE_CREDENTIALS_BASE64 = os.getenv("GOOGLE_CREDENTIALS_BASE64")
+
+# Admin Config
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
@@ -231,9 +234,11 @@ def create_equipment_rejected_email(user_data):
 
 # --- LOGIN DECORATOR ---
 def login_required(f):
+    """Decorator to restrict access to certain routes."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
+            flash('You must be logged in to view this page.', 'error')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -242,7 +247,7 @@ def login_required(f):
 
 @app.route('/')
 def home():
-    """Main route, shows the lab booking form."""
+    """Main route, shows the public lab booking form."""
     return render_template('index.html')
 
 @app.route('/dashboard')
@@ -258,13 +263,16 @@ def scan_qr():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Route for the admin login page."""
+    if 'logged_in' in session:
+        return redirect(url_for('admin_panel')) # If already logged in, go to admin panel
+        
     if request.method == 'POST':
         email = request.form['username']
         password = request.form['password']
         if email == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             flash('Login successful!', 'success')
-            return redirect(url_for('dashboard')) 
+            return redirect(url_for('admin_panel')) # Redirect to admin panel
         else:
             flash('Invalid Credentials. Please try again.', 'error')
             return redirect(url_for('login'))
@@ -274,6 +282,7 @@ def login():
 def logout():
     """Route for logging out the admin."""
     session.pop('logged_in', None)
+    flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
 @app.route('/booking')
@@ -283,10 +292,19 @@ def booking_form():
 
 @app.route('/equipment')
 def equipment_booking_form():
-    """Route for the equipment booking form."""
+    """Route for the public equipment booking form."""
     return render_template('equipment.html')
 
+# --- NEW: ADMIN PANEL ROUTE ---
+@app.route('/admin_panel')
+@login_required
+def admin_panel():
+    """Displays the admin-only control panel."""
+    return render_template('admin_panel.html')
+
 # --- API ENDPOINTS ---
+
+# --- Public APIs ---
 
 @app.route('/api/getBookedSlots', methods=['GET'])
 def get_booked_slots():
@@ -324,7 +342,7 @@ def get_dashboard_data():
 
 @app.route('/api/submitBooking', methods=['POST'])
 def handle_form_submission():
-    """API to handle the lab booking form submission."""
+    """API to handle the public lab booking form submission."""
     sheet = get_lab_booking_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
@@ -334,6 +352,7 @@ def handle_form_submission():
         new_start = time_to_minutes(data['waktuMulai'])
         new_end = time_to_minutes(data['waktuSelesai'])
 
+        # Check for conflicts
         for record in all_records:
             if str(record.get('Tanggal Booking')) == data['tanggalBooking'] and record.get('Status') in ["Disetujui", "Menunggu Persetujuan", "Datang"]:
                 existing_start = time_to_minutes(record.get('Waktu Mulai'))
@@ -365,7 +384,7 @@ def handle_form_submission():
 
 @app.route('/api/submitEquipmentBooking', methods=['POST'])
 def handle_equipment_submission():
-    """API to handle the equipment borrowing form submission."""
+    """API to handle the public equipment borrowing form submission."""
     sheet = get_equipment_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the equipment database'}), 503
@@ -394,6 +413,80 @@ def handle_equipment_submission():
         print(f"Error in submitEquipmentBooking: {e}")
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
 
+# --- ADMIN-ONLY APIs ---
+
+@app.route('/api/admin_lab_booking', methods=['POST'])
+@login_required
+def handle_admin_lab_booking():
+    """API for admins to book a lab (auto-approved)."""
+    sheet = get_lab_booking_sheet()
+    if not sheet: 
+        return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
+    
+    try:
+        data = request.form.to_dict()
+        all_records = sheet.get_all_records()
+        new_start = time_to_minutes(data['waktuMulai'])
+        new_end = time_to_minutes(data['waktuSelesai'])
+
+        # Check for conflicts
+        for record in all_records:
+            if str(record.get('Tanggal Booking')) == data['tanggalBooking'] and record.get('Status') in ["Disetujui", "Datang"]:
+                existing_start = time_to_minutes(record.get('Waktu Mulai'))
+                existing_end = time_to_minutes(record.get('Waktu Selesai'))
+                if new_start < existing_end and existing_start < new_end: 
+                    return jsonify({'status': 'gagal', 'message': 'The schedule at that time is already booked by another user.'})
+        
+        import uuid
+        row_id = str(uuid.uuid4())
+        
+        new_row = [
+            datetime.now().isoformat(), 
+            f"[ADMIN] {data['nama']}", data['idPengguna'], data['emailPengguna'],
+            data['tanggalBooking'], data['waktuMulai'], data['waktuSelesai'],
+            data.get('purpose', 'Admin Booking'), data.get('jumlahOrang', '1'), 
+            "Disetujui", # Auto-approved
+            row_id
+        ]
+        sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        
+        return jsonify({'status': 'success', 'message': 'Admin booking created and auto-approved!'})
+    except Exception as e: 
+        return jsonify({'status': 'gagal', 'message': str(e)}), 500
+
+@app.route('/api/admin_equipment_booking', methods=['POST'])
+@login_required
+def handle_admin_equipment_booking():
+    """API for admins to borrow equipment (auto-approved)."""
+    sheet = get_equipment_sheet()
+    if not sheet: 
+        return jsonify({'status': 'gagal', 'message': 'Failed to connect to the equipment database'}), 503
+    
+    try:
+        data = request.form.to_dict()
+        import uuid
+        row_id = str(uuid.uuid4())
+        
+        # Admin can borrow any item, so we just parse the text
+        items_borrowed = data.get('equipmentList', 'No items listed')
+
+        new_row = [
+            datetime.now().isoformat(),
+            f"[ADMIN] {data.get('nama')}", data.get('idPengguna'), data.get('emailPengguna'),
+            data.get('waNumber'), data.get('pickupDateTime'), data.get('returnDateTime'),
+            data.get('purpose'), 
+            items_borrowed, # Store the raw text
+            "Disetujui",  # Auto-approved
+            row_id
+        ]
+        
+        sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        
+        return jsonify({'status': 'success', 'message': 'Admin equipment loan created and auto-approved!'})
+    except Exception as e: 
+        print(f"Error in adminEquipmentBooking: {e}")
+        return jsonify({'status': 'gagal', 'message': str(e)}), 500
+
 # --- ACTION ROUTES (LAB BOOKING) ---
 @app.route('/<action>', methods=['GET'])
 def handle_action(action):
@@ -402,7 +495,6 @@ def handle_action(action):
     if not row_id: 
         return "Error: ID not found.", 400
     
-    # This logic only applies to the LAB BOOKING sheet
     if action not in ['approve', 'reject', 'checkin', 'checkout']:
         return "Invalid action.", 400
 
@@ -411,7 +503,7 @@ def handle_action(action):
         return render_template('konfirmasi.html', message="Failed to connect to the database.", status="gagal"), 503
 
     try:
-        cell = sheet.find(row_id, in_column=11)
+        cell = sheet.find(row_id, in_column=11) # Row ID is in Column K
         if not cell: 
             return render_template('konfirmasi.html', message="Booking data not found or already processed.", status="gagal"), 404
         

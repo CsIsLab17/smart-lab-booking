@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Panel</title>
+    <!-- Tautan ke CSS Navigasi dan CSS Admin Panel yang baru -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_panel.css') }}">
+</head>
+<body>
+    
+    <div class="header">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
+            <h1>Admin Panel</h1>
+        </div>
+        <div class="header-right">
+            <!-- Tautan navigasi publik -->
+            <a href="{{ url_for('home') }}">Lab Booking</a>
+            <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+            <!-- Tautan Logout untuk admin -->
+            <a href="{{ url_for('logout') }}" style="background-color: #D4002A; padding: 5px 10px; border-radius: 5px;">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="admin-forms-container">
+            
+            <!-- WIDGET 1: ADMIN LAB BOOKING -->
+            <div class="widget">
+                <h2>Admin Lab Booking (Auto-Approved)</h2>
+                <form class="admin-form" id="adminLabForm">
+                    <p style="font-size: 0.9rem; color: #555; margin-top: -15px; margin-bottom: 20px;">Bookings made here are automatically set to "Approved".</p>
+                    
+                    <label for="admin_nama">Full Name:</label>
+                    <input type="text" id="admin_nama" name="nama" required>
+                    
+                    <label for="admin_idPengguna">Student / Staff ID:</label>
+                    <input type="tel" id="admin_idPengguna" name="idPengguna" required>
+                    
+                    <label for="admin_emailPengguna">SU Email:</label>
+                    <input type="email" id="admin_emailPengguna" name="emailPengguna" required>
+                    
+                    <label for="admin_tanggalBooking">Booking Date:</label>
+                    <input type="date" id="admin_tanggalBooking" name="tanggalBooking" required>
+                    
+                    <div class="time-container">
+                        <div>
+                            <label for="admin_waktuMulai">Start Time:</label>
+                            <input type="time" id="admin_waktuMulai" name="waktuMulai" required>
+                        </div>
+                        <div>
+                            <label for="admin_waktuSelesai">End Time:</label>
+                            <input type="time" id="admin_waktuSelesai" name="waktuSelesai" required>
+                        </div>
+                    </div>
+                    
+                    <label for="admin_jumlahOrang">Number of People:</label>
+                    <input type="number" id="admin_jumlahOrang" name="jumlahOrang" value="1" min="1" required>
+
+                    <label for="admin_bookingPurpose">Purpose of Booking:</label>
+                    <textarea id="admin_bookingPurpose" name="purpose" rows="3" required></textarea>
+                    
+                    <button type="submit" id="adminLabSubmit">Book Lab (Admin)</button>
+                    <div id="labStatusMessage"></div>
+                </form>
+            </div>
+
+            <!-- WIDGET 2: ADMIN EQUIPMENT BOOKING -->
+            <div class="widget">
+                <h2>Admin Equipment Booking (Auto-Approved)</h2>
+                <form class="admin-form" id="adminEquipmentForm">
+                    <p style="font-size: 0.9rem; color: #555; margin-top: -15px; margin-bottom: 20px;">Bookings made here bypass approval and can include items not for loan.</p>
+                    
+                    <label for="admin_equip_nama">Full Name:</label>
+                    <input type="text" id="admin_equip_nama" name="nama" required>
+                    
+                    <label for="admin_equip_idPengguna">Student / Staff ID:</label>
+                    <input type="tel" id="admin_equip_idPengguna" name="idPengguna" required>
+
+                    <label for="admin_equip_emailPengguna">SU Email:</label>
+                    <input type="email" id="admin_equip_emailPengguna" name="emailPengguna" required>
+
+                    <label for="admin_equip_waNumber">WhatsApp Number:</label>
+                    <input type="tel" id="admin_equip_waNumber" name="waNumber" required>
+
+                    <label for="admin_pickupDateTime">Pickup Date and Time:</label>
+                    <input type="datetime-local" id="admin_pickupDateTime" name="pickupDateTime" required>
+            
+                    <label for="admin_returnDateTime">Return Date and Time:</label>
+                    <input type="datetime-local" id="admin_returnDateTime" name="returnDateTime" required>
+
+                    <label for="admin_equipmentList">Equipment List (Item Name: Quantity):</label>
+                    <textarea id="admin_equipmentList" name="equipmentList" rows="4" placeholder="e.g., Crimping Tool: 2, AIO ThinkCentre PC: 1" required></textarea>
+
+                    <label for="admin_equip_purpose">Purpose of Borrowing:</label>
+                    <textarea id="admin_equip_purpose" name="purpose" rows="3" required></textarea>
+
+                    <button type="submit" id="adminEquipSubmit">Borrow Equipment (Admin)</button>
+                    <div id="equipStatusMessage"></div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Tautan ke file JS baru untuk panel admin -->
+    <script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
+</body>
+</html>
+
