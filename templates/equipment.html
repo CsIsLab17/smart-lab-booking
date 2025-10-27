@@ -122,64 +122,44 @@
                 <h3>B. Can be Borrowed</h3>
                 <div class="equipment-grid">
                     
-                    <!-- Item 1 -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Crimping Tool">
+                        <img src="{{ url_for('static', filename='crimping-tool.jpg') }}" alt="Crimping Tool">
                         <label for="item_crimping">Crimping Tool</label>
                         <span class="stock-info" id="stock_crimping">5 units available</span>
                         <input type="number" id="item_crimping" name="item_crimping" min="0" max="5" placeholder="Quantity" value="0">
                     </div>
-
-                    <!-- Item 2 -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Network Cable Tester">
+                        <img src="{{ url_for('static', filename='network-cable-tester.jpg') }}" alt="Network Cable Tester">
                         <label for="item_tester">Network Cable Tester</label>
                         <span class="stock-info" id="stock_tester">3 units available</span>
                         <input type="number" id="item_tester" name="item_tester" min="0" max="3" placeholder="Quantity" value="0">
                     </div>
-
-                    <!-- Item 3 -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="LAN Cutter">
+                        <img src="{{ url_for('static', filename='LAN-cutter.jpg') }}" alt="LAN Cutter">
                         <label for="item_cutter">LAN Cutter</label>
                         <span class="stock-info" id="stock_cutter">4 units available</span>
                         <input type="number" id="item_cutter" name="item_cutter" min="0" max="4" placeholder="Quantity" value="0">
                     </div>
-                    
-                    <!-- Item 4 -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Router TP-Link">
+                        <img src="{{ url_for('static', filename='Router-tp-link.jpg') }}" alt="Router TP-Link">
                         <label for="item_router">Router TP-Link TL-MR6400</label>
                         <span class="stock-info" id="stock_router">1 unit available</span>
                         <input type="number" id="item_router" name="item_router" min="0" max="1" placeholder="Quantity" value="0">
                     </div>
-
-                    <!-- Item 5 (Staff Only) -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Projector">
+                        <img src="{{ url_for('static', filename='projector.jpg') }}" alt="Projector">
                         <label for="item_projector">Projector <span class="staff-only">(Staff Only)</span></label>
                         <span class="stock-info" id="stock_projector">1 unit available</span>
                         <input type="number" id="item_projector" name="item_projector" min="0" max="1" placeholder="Quantity" value="0">
                     </div>
-
-                    <!-- Item 6 (Staff Only) -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="HDMI Cable">
+                        <img src="{{ url_for('static', filename='hdmi-cable.jpg') }}" alt="HDMI Cable">
                         <label for="item_hdmi">HDMI Cable <span class="staff-only">(Staff Only)</span></label>
                         <span class="stock-info" id="stock_hdmi">1 unit available</span>
                         <input type="number" id="item_hdmi" name="item_hdmi" min="0" max="1" placeholder="Quantity" value="0">
                     </div>
-
-                    <!-- Item 7 -->
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Ethernet Cables">
+                        <img src="{{ url_for('static', filename='Ethernet-lan-cables.jpg') }}" alt="Ethernet Cables">
                         <label for="item_ethernet">Ethernet/LAN Cables</label>
                         <span class="stock-info" id="stock_ethernet">Multiple available</span>
                         <input type="number" id="item_ethernet" name="item_ethernet" min="0" placeholder="Quantity" value="0">
@@ -194,44 +174,37 @@
                 <div class="equipment-grid">
                     
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="AIO PC">
+                        <img src="{{ url_for('static', filename='aio-thinkcentre-pc.jpg') }}" alt="AIO PC">
                         <label class="not-borrowable">AIO ThinkCentre PC</label>
                         <span class="stock-info">2 units (Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Keyboard">
+                        <img src="{{ url_for('static', filename='keyboard.jpg') }}" alt="Keyboard">
                         <label class="not-borrowable">Keyboard</label>
                         <span class="stock-info">3 units (Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Mouse">
+                        <img src="{{ url_for('static', filename='mouse.jpg') }}" alt="Mouse">
                         <label class="not-borrowable">Mouse</label>
                         <span class="stock-info">2 units (Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
                         <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Server">
                         <label class="not-borrowable">Server, etc</label>
                         <span class="stock-info">(Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="PC">
+                        <img src="{{ url_for('static', filename='Thinkcentre-pc.jpg') }}" alt="PC">
                         <label class="not-borrowable">ThinkCentre PC</label>
                         <span class="stock-info">2 units (Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Printer">
+                        <img src="{{ url_for('static', filename='Printer.jpg') }}" alt="Printer">
                         <label class="not-borrowable">Printer</label>
                         <span class="stock-info">1 unit (Lab Use)</span>
                     </div>
                     <div class="equipment-item">
-                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
-                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Whiteboard">
+                        <img src="{{ url_for('static', filename='whiteboard.jpg') }}" alt="Whiteboard">
                         <label class="not-borrowable">Whiteboard</label>
                         <span class="stock-info">2 units (Lab Use)</span>
                     </div>

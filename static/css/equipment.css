@@ -59,7 +59,7 @@
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* Penting agar padding tidak merusak layout */
+    box-sizing: border-box;
 }
 
 /* Keterangan untuk staf */
