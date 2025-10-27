@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pickupInput = document.getElementById('pickupDateTime');
     const returnInput = document.getElementById('returnDateTime');
 
-    // Input Kuantitas Alat
+    // Input Kuantitas Alat (semua input angka di dalam item)
     const itemInputs = form.querySelectorAll('.equipment-item input[type="number"]');
 
     // --- FUNGSI VALIDASI ---
@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Validasi Tanggal & Waktu
         const now = new Date();
-        const minPickupDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); 
+        // Beri toleransi 1 menit untuk menghindari error pembulatan
+        const minPickupDate = new Date(now.getTime() + 24 * 60 * 60 * 1000 - 60000); 
         const pickupDate = new Date(pickupInput.value);
         const returnDate = new Date(returnInput.value);
 
@@ -74,27 +75,32 @@ document.addEventListener('DOMContentLoaded', () => {
         itemInputs.forEach(input => {
             totalItems += parseInt(input.value, 10) || 0;
         });
-        if (isFormValid && totalItems === 0) {
-            validationMessage = 'Error: You must request at least one piece of equipment.';
-            isFormValid = false;
-        }
 
         // 5. Cek semua field wajib
         const isAllFilled = [...form.querySelectorAll('[required]')].every(input => input.value.trim() !== '');
         
         // --- Atur Status Tombol & Pesan ---
-        if (isAllFilled && isFormValid) {
+        if (isAllFilled && isFormValid && totalItems > 0) {
             submitButton.disabled = false;
             statusMessage.innerText = 'All fields are valid. Ready to submit.';
             statusMessage.className = 'status-sukses';
         } else {
             submitButton.disabled = true;
-            if (!isAllFilled && (emailInput.value || waInput.value || pickupInput.value)) {
-                 statusMessage.innerText = 'Please fill all required fields.';
-                 statusMessage.className = 'status-gagal';
+            
+            // Tentukan pesan error prioritas
+            if (isAllFilled && totalItems === 0) {
+                validationMessage = 'Error: You must request at least one piece of equipment.';
+            } else if (!isAllFilled && (emailInput.value || waInput.value || pickupInput.value)) {
+                 validationMessage = 'Please fill all required fields.';
+            }
+            
+            // Tampilkan pesan jika ada input, atau jika pesan default
+            if(emailInput.value || waInput.value || pickupInput.value || totalItems > 0) {
+                statusMessage.innerText = validationMessage;
+                statusMessage.className = 'status-gagal';
             } else {
-                 statusMessage.innerText = validationMessage;
-                 statusMessage.className = 'status-gagal';
+                statusMessage.innerText = 'Please fill out the form to request equipment.';
+                statusMessage.className = '';
             }
         }
     }
@@ -107,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Validasi form secara real-time
     form.querySelectorAll('input, textarea, select').forEach(element => {
         element.addEventListener('input', validateForm);
+        element.addEventListener('change', validateForm);
     });
     
     // Atur tanggal minimum 'return' berdasarkan tanggal 'pickup'
@@ -124,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     });
 
-    // --- EVENT SUBMIT FORM ---
+    // --- EVENT SUBMIT FORM (INI BAGIAN PENTING) ---
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         validateForm(); // Lakukan validasi terakhir
@@ -137,16 +144,37 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.disabled = true;
         submitButton.innerText = "Sending...";
         
-        // Mengirim data ke API (yang masih placeholder di app.py)
+        // Buat objek FormData dari form
+        const formData = new FormData(form);
+        
+        // --- PERUBAHAN UTAMA: Kumpulkan data alat ---
+        // Buat objek untuk menyimpan daftar alat yang dipinjam
+        const itemsBorrowed = {};
+        itemInputs.forEach(input => {
+            const quantity = parseInt(input.value, 10) || 0;
+            if (quantity > 0) {
+                // Gunakan atribut 'name' dari input (cth: "Crimping Tool") sebagai kunci
+                itemsBorrowed[input.name] = quantity;
+            }
+        });
+        
+        // Tambahkan data JSON alat ke FormData sebagai satu string
+        // 'app.py' akan menerima ini sebagai 'itemsBorrowed'
+        formData.append('itemsBorrowed', JSON.stringify(itemsBorrowed));
+        // --- AKHIR PERUBAHAN ---
+
+        // Kirim FormData yang sudah dimodifikasi ke API
         fetch(`/api/submitEquipmentBooking`, {
             method: 'POST',
-            body: new FormData(form)
+            body: formData 
         })
         .then(response => response.json())
         .then(data => {
+            // Gunakan 'status: "success"' (dari app.py) untuk cek
             statusMessage.innerText = data.message;
-            statusMessage.className = data.status === 'sukses' ? 'status-sukses' : 'status-gagal';
-            if (data.status === 'sukses') {
+            statusMessage.className = data.status === 'success' ? 'status-sukses' : 'status-gagal';
+            
+            if (data.status === 'success') {
                 form.reset();
                 setMinPickupDateTime(); // Set ulang min date
                 // Set ulang nilai default kuantitas menjadi 0
