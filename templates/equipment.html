@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Booking Form - Sampoerna University</title>
+    <!-- Memuat CSS Navigasi, CSS Form Utama, dan CSS Equipment Baru -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- File CSS baru untuk halaman ini -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/equipment.css') }}">
+</head>
+<body>
+    <!-- Header Navigasi -->
+    <div class="header">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Logo" class="logo">
+            <h1>Laboratory Equipment Booking Form</h1>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('home') }}">Lab Booking</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+            <a href="{{ url_for('login') }}">Login</a>
+        </div>
+    </div>
+
+    <!-- Konten Form -->
+    <div class="container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='Sampoerna-University-koleksilogo.com_GKL14.png') }}" alt="Sampoerna University Logo">
+        </div>
+
+        <!-- Rules and Regulations Baru -->
+        <div class="rules">
+            <h2>A. Procedure:</h2>
+            <h4>1. Booking Form Submission:</h4>
+            <ol>
+                <li>Read the rules and regulations carefully.</li>
+                <li>Fill out the booking form completely, ensuring that your details (name, ID, contact info, etc.) are accurate.</li>
+                <li>Submit the completed booking form.</li>
+            </ol>
+            <h4>2. Lab Access:</h4>
+            <ol>
+                <li>Once you receive confirmation of equipment availability, proceed to the lab on the agreed-upon time.</li>
+                <li>Check-in at the lab entrance and ensure you're aware of any specific protocols or instructions for using the equipment.</li>
+            </ol>
+            <br>
+            <h2>B. Rules and Regulations:</h2>
+            <h4>1. Equipment Borrowing Procedure:</h4>
+            <ol>
+                <li>All requests to borrow equipment must be made in advance by filling out the official Equipment Borrowing Form.</li>
+                <li>Requests should be submitted at least 24 hours before the desired pickup time to allow for processing and preparation.</li>
+                <li>Approval is subject to equipment availability and the borrower's standing with the lab.</li>
+            </ol>
+            <h4>2. Borrowing Duration:</h4>
+            <ol>
+                <li>The standard borrowing duration for most equipment is 5 days.</li>
+                <li>An extension for additional days may be requested online or in person before the original due date. Extensions are subject to availability and are not guaranteed.</li>
+            </ol>
+            <h4>3. Booking Cancellation:</h4>
+            <ol><li>If you no longer need the equipment you reserved, please cancel your request at least 12 hours in advance to make the equipment available to others.</li></ol>
+            <h4>4. Lab Equipment Usage:</h4>
+            <ol>
+                <li>All lab equipment must be handled with care and used for academic purposes only.</li>
+                <li>The borrower is fully responsible for the equipment from the moment it is checked out until it is successfully returned and inspected by lab staff.</li>
+                <li>Any damage, malfunction, or loss of equipment must be reported to the lab supervisor immediately. The borrower will be financially responsible for the full cost of repair or replacement.</li>
+            </ol>
+            <h4>5. Late Returns:</h4>
+            <ol>
+                <li>Equipment returned after the due date will incur late penalties.</li>
+                <li>Repeated failure to return items on time may result in the suspension of your borrowing privileges for the rest of the academic year.</li>
+            </ol>
+            <h4>6. Equipment Return:</h4>
+            <ol>
+                <li>Equipment must be returned in person to a lab staff member during lab operating hours.</li>
+                <li>Please ensure all components, cables, chargers, and accessories are returned with the main piece of equipment.</li>
+                <li>Allow for a few minutes upon return for lab staff to inspect the equipment's condition.</li>
+            </ol>
+        </div>
+        <hr>
+
+        <h2>Equipment Request Form</h2>
+        <form id="equipmentForm" novalidate>
+            <!-- Bagian 1: Info Peminjam -->
+            <h3>1. Borrower Information</h3>
+            <label for="nama">Full Name:</label>
+            <input type="text" id="nama" name="nama" required>
+            
+            <label for="idPengguna">Student / Staff ID Number:</label>
+            <input type="tel" id="idPengguna" name="idPengguna" required>
+            
+            <label for="emailPengguna">SU Email Address:</label>
+            <input type="email" id="emailPengguna" name="emailPengguna" required placeholder="name.surname@my.sampoernauniversity.ac.id">
+
+            <label for="waNumber">WhatsApp Number:</label>
+            <input type="tel" id="waNumber" name="waNumber" required placeholder="e.g., 628123456789">
+            
+            <hr style="margin: 30px 0;">
+
+            <!-- Bagian 2: Waktu Peminjaman -->
+            <h3>2. Booking Time</h3>
+            <p>Please select your desired pickup and return time. Bookings must be made 24 hours in advance.</p>
+            <div class="time-container">
+                <div>
+                    <label for="pickupDateTime">Desired Pickup Date & Time:</label>
+                    <input type="datetime-local" id="pickupDateTime" name="pickupDateTime" required>
+                </div>
+                <div>
+                    <label for="returnDateTime">Return Date & Time:</label>
+                    <input type="datetime-local" id="returnDateTime" name="returnDateTime" required>
+                </div>
+            </div>
+            
+            <hr style="margin: 30px 0;">
+
+            <!-- Bagian 3: Kebutuhan Alat -->
+            <h3>3. Equipment Needed</h3>
+
+            <!-- Alat yang BISA dipinjam -->
+            <div class="equipment-section">
+                <h3>B. Can be Borrowed</h3>
+                <div class="equipment-grid">
+                    
+                    <!-- Item 1 -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Crimping Tool">
+                        <label for="item_crimping">Crimping Tool</label>
+                        <span class="stock-info" id="stock_crimping">5 units available</span>
+                        <input type="number" id="item_crimping" name="item_crimping" min="0" max="5" placeholder="Quantity" value="0">
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Network Cable Tester">
+                        <label for="item_tester">Network Cable Tester</label>
+                        <span class="stock-info" id="stock_tester">3 units available</span>
+                        <input type="number" id="item_tester" name="item_tester" min="0" max="3" placeholder="Quantity" value="0">
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="LAN Cutter">
+                        <label for="item_cutter">LAN Cutter</label>
+                        <span class="stock-info" id="stock_cutter">4 units available</span>
+                        <input type="number" id="item_cutter" name="item_cutter" min="0" max="4" placeholder="Quantity" value="0">
+                    </div>
+                    
+                    <!-- Item 4 -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Router TP-Link">
+                        <label for="item_router">Router TP-Link TL-MR6400</label>
+                        <span class="stock-info" id="stock_router">1 unit available</span>
+                        <input type="number" id="item_router" name="item_router" min="0" max="1" placeholder="Quantity" value="0">
+                    </div>
+
+                    <!-- Item 5 (Staff Only) -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Projector">
+                        <label for="item_projector">Projector <span class="staff-only">(Staff Only)</span></label>
+                        <span class="stock-info" id="stock_projector">1 unit available</span>
+                        <input type="number" id="item_projector" name="item_projector" min="0" max="1" placeholder="Quantity" value="0">
+                    </div>
+
+                    <!-- Item 6 (Staff Only) -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="HDMI Cable">
+                        <label for="item_hdmi">HDMI Cable <span class="staff-only">(Staff Only)</span></label>
+                        <span class="stock-info" id="stock_hdmi">1 unit available</span>
+                        <input type="number" id="item_hdmi" name="item_hdmi" min="0" max="1" placeholder="Quantity" value="0">
+                    </div>
+
+                    <!-- Item 7 -->
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Ethernet Cables">
+                        <label for="item_ethernet">Ethernet/LAN Cables</label>
+                        <span class="stock-info" id="stock_ethernet">Multiple available</span>
+                        <input type="number" id="item_ethernet" name="item_ethernet" min="0" placeholder="Quantity" value="0">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Alat yang TIDAK BISA dipinjam -->
+            <div class="equipment-section">
+                <h3>A. Cannot be Borrowed (Lab Use Only)</h3>
+                <div class="equipment-grid">
+                    
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="AIO PC">
+                        <label class="not-borrowable">AIO ThinkCentre PC</label>
+                        <span class="stock-info">2 units (Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Keyboard">
+                        <label class="not-borrowable">Keyboard</label>
+                        <span class="stock-info">3 units (Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Mouse">
+                        <label class="not-borrowable">Mouse</label>
+                        <span class="stock-info">2 units (Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Server">
+                        <label class="not-borrowable">Server, etc</label>
+                        <span class="stock-info">(Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="PC">
+                        <label class="not-borrowable">ThinkCentre PC</label>
+                        <span class="stock-info">2 units (Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Printer">
+                        <label class="not-borrowable">Printer</label>
+                        <span class="stock-info">1 unit (Lab Use)</span>
+                    </div>
+                    <div class="equipment-item">
+                        <!-- Ganti 'placeholder.jpg' dengan nama file gambar Anda di folder static -->
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" alt="Whiteboard">
+                        <label class="not-borrowable">Whiteboard</label>
+                        <span class="stock-info">2 units (Lab Use)</span>
+                    </div>
+
+                </div>
+            </div>
+            
+            <hr style="margin: 30px 0;">
+
+            <!-- Bagian 4: Tujuan Peminjaman -->
+            <h3>4. Purpose of Borrowing</h3>
+            <label for="purpose">Briefly describe the course, project, or academic activity:</label>
+            <textarea id="purpose" name="purpose" rows="4" required></textarea>
+            
+            <button type="submit" id="submitButton" disabled>Send Borrowing Request</button>
+        </form>
+        <div id="statusMessage">Please fill out all fields.</div>
+    </div>
+    
+    <!-- Tautkan ke file JS baru -->
+    <script src="{{ url_for('static', filename='js/equipment.js') }}"></script>
+</body>
+</html>
+

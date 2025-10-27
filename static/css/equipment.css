@@ -1,0 +1,79 @@
+.equipment-section {
+    margin-bottom: 25px;
+}
+
+.equipment-section h3 {
+    color: #0033A0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+}
+
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.equipment-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background-color: #f9f9f9;
+    transition: box-shadow 0.2s;
+}
+
+.equipment-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.equipment-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: #eee;
+    margin-bottom: 10px;
+}
+
+.equipment-item label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.equipment-item .stock-info {
+    font-size: 0.8rem;
+    color: #777;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.equipment-item input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Penting agar padding tidak merusak layout */
+}
+
+/* Keterangan untuk staf */
+.staff-only {
+    font-weight: 700;
+    color: #D4002A; /* Merah */
+}
+
+/* Keterangan tidak bisa dipinjam */
+.not-borrowable {
+    text-decoration: line-through;
+    color: #999;
+}
+.not-borrowable .stock-info {
+    text-decoration: none;
+    color: #999;
+}
