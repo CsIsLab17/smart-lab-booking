@@ -284,7 +284,7 @@ def booking_form():
 @app.route('/equipment')
 def equipment_booking_form():
     """Route for the equipment booking form."""
-    return render_template('equipment_booking.html')
+    return render_template('equipment.html')
 
 # --- API ENDPOINTS ---
 
@@ -411,7 +411,7 @@ def handle_action(action):
         return render_template('konfirmasi.html', message="Failed to connect to the database.", status="gagal"), 503
 
     try:
-        cell = sheet.find(row_id, in_column=11) # Row ID is in Column K
+        cell = sheet.find(row_id, in_column=11)
         if not cell: 
             return render_template('konfirmasi.html', message="Booking data not found or already processed.", status="gagal"), 404
         
