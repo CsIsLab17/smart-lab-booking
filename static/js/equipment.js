@@ -1,142 +1,173 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- ELEMEN DOM ---
-    const form = document.getElementById('equipmentForm');
+    const form = document.getElementById('bookingForm');
     const statusMessage = document.getElementById('statusMessage');
     const submitButton = document.getElementById('submitButton');
-
-    // Input Info Peminjam
+    const namaInput = document.getElementById('nama');
+    const idInput = document.getElementById('idPengguna');
     const emailInput = document.getElementById('emailPengguna');
-    const waInput = document.getElementById('waNumber');
-    
-    // Input Waktu
-    const pickupInput = document.getElementById('pickupDateTime');
-    const returnInput = document.getElementById('returnDateTime');
+    const tanggalBookingInput = document.getElementById('tanggalBooking');
+    const waktuMulaiSelect = document.getElementById('waktuMulai');
+    const waktuSelesaiSelect = document.getElementById('waktuSelesai');
+    const purposeSelect = document.getElementById('bookingPurpose');
+    const otherPurposeContainer = document.getElementById('other-purpose-container');
+    const otherPurposeInput = document.getElementById('otherPurpose');
+    const jumlahOrangInput = document.getElementById('jumlahOrang');
 
-    // Input Kuantitas Alat (semua input angka di dalam item)
-    const itemInputs = form.querySelectorAll('.equipment-item input[type="number"]');
+    let bookedSlotsForSelectedDate = [];
 
-    // --- FUNGSI VALIDASI ---
-
-    /**
-     * Mengatur tanggal & waktu minimum untuk input pickup (24 jam dari sekarang).
-     */
-    function setMinPickupDateTime() {
-        const now = new Date();
-        // Tambahkan 24 jam (dalam milidetik)
-        now.setTime(now.getTime() + 24 * 60 * 60 * 1000); 
-        
-        // Format ke string YYYY-MM-DDTHH:MM yang dibutuhkan oleh <input datetime-local>
-        // Kita perlu menyesuaikan dengan timezone lokal, bukan UTC
-        const localISOTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
-                            .toISOString()
-                            .slice(0, 16);
-        
-        pickupInput.setAttribute('min', localISOTime);
+    // --- FUNGSI HELPER ---
+    function timeToMinutes(time) {
+        if (typeof time !== 'string' || !time.includes(':')) return 0;
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
     }
 
-    /**
-     * Fungsi utama untuk memvalidasi seluruh form.
-     */
+    // --- FUNGSI API ---
+    async function fetchBookedSlots(date) {
+        if (!date) {
+            bookedSlotsForSelectedDate = [];
+            populateTimeSlots();
+            return;
+        }
+        statusMessage.innerText = "Checking schedule...";
+        submitButton.disabled = true;
+        try {
+            const response = await fetch(`/api/getBookedSlots?tanggal=${date}`);
+            const result = await response.json();
+            if (result.status === 'sukses') {
+                bookedSlotsForSelectedDate = result.data.map(slot => ({
+                    start: timeToMinutes(slot.start),
+                    end: timeToMinutes(slot.end)
+                }));
+                statusMessage.innerText = "Schedule loaded. Please select a time.";
+                statusMessage.className = 'status-sukses';
+            } else { throw new Error(result.message); }
+        } catch (error) {
+            console.error('Error fetching booked slots:', error);
+            statusMessage.innerText = `Failed to load schedule. Please try again.`;
+            statusMessage.className = 'status-gagal';
+            bookedSlotsForSelectedDate = [];
+        } finally {
+            populateTimeSlots();
+        }
+    }
+
+    // --- FUNGSI DOM & VALIDASI ---
+    function populateTimeSlots() {
+        waktuMulaiSelect.innerHTML = '<option value="">Select Time</option>';
+        waktuSelesaiSelect.innerHTML = '<option value="">Select Time</option>';
+
+        const now = new Date();
+        const isToday = (tanggalBookingInput.value === now.toISOString().split('T')[0]);
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const startTime = 8 * 60, endTime = 17 * 60, interval = 30;
+
+        for (let i = startTime; i <= endTime; i += interval) {
+            const timeString = `${String(Math.floor(i / 60)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}`;
+            const isBooked = bookedSlotsForSelectedDate.some(slot => i >= slot.start && i < slot.end);
+            const isPastTime = isToday && (i < currentMinutes);
+
+            if (i < endTime) { 
+                const option = new Option(timeString, timeString);
+                if (isBooked || isPastTime) {
+                    option.disabled = true;
+                    option.innerText += isBooked ? ' (Booked)' : ' (Passed)';
+                }
+                waktuMulaiSelect.add(option);
+            }
+            if (i > startTime) { 
+                const option = new Option(timeString, timeString);
+                const isEndBooked = bookedSlotsForSelectedDate.some(slot => i > slot.start && i <= slot.end);
+                const isEndPastTime = isToday && (i <= currentMinutes);
+                if (isEndBooked || isEndPastTime) {
+                    option.disabled = true;
+                    option.innerText += isEndBooked ? ' (Booked)' : ' (Passed)';
+                }
+                waktuSelesaiSelect.add(option);
+            }
+        }
+        validateForm(); 
+    }
+
     function validateForm() {
         let isFormValid = true;
         let validationMessage = 'Please fill all required fields correctly.';
 
-        // 1. Validasi Email
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@my\.sampoernauniversity\.ac\.id$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@(my\.)?sampoernauniversity\.ac\.id$/;
         if (emailInput.value && !emailRegex.test(emailInput.value)) {
-            validationMessage = 'Error: Email must use @my.sampoernauniversity.ac.id domain.';
+            validationMessage = 'Error: Email must use @my.sampoernauniversity.ac.id or @sampoernauniversity.ac.id domain.';
             isFormValid = false;
         }
+        // --- AKHIR PERUBAHAN ---
 
-        // 2. Validasi WhatsApp
-        const waRegex = /^62\d{9,13}$/; // Format 62...
-        if (waInput.value && !waRegex.test(waInput.value)) {
-            validationMessage = 'Error: WhatsApp number must start with 62 (e.g., 6281234...).';
-            isFormValid = false;
+        // Validasi Durasi Waktu
+        const startTime = timeToMinutes(waktuMulaiSelect.value);
+        const endTime = timeToMinutes(waktuSelesaiSelect.value);
+        if (startTime && endTime) {
+            if (startTime >= endTime) {
+                validationMessage = 'Error: End time must be after start time.';
+                isFormValid = false;
+            } else if ((endTime - startTime) > 120) {
+                validationMessage = 'Error: Maximum booking duration is 2 hours.';
+                isFormValid = false;
+            }
         }
-
-        // 3. Validasi Tanggal & Waktu
-        const now = new Date();
-        // Beri toleransi 1 menit untuk menghindari error pembulatan
-        const minPickupDate = new Date(now.getTime() + 24 * 60 * 60 * 1000 - 60000); 
-        const pickupDate = new Date(pickupInput.value);
-        const returnDate = new Date(returnInput.value);
-
-        if (pickupInput.value && pickupDate < minPickupDate) {
-            validationMessage = 'Error: Pickup must be at least 24 hours from now.';
-            isFormValid = false;
-        } else if (pickupInput.value && returnInput.value && returnDate <= pickupDate) {
-            validationMessage = 'Error: Return date must be after pickup date.';
-            isFormValid = false;
-        }
-
-        // 4. Validasi Kuantitas Alat
-        let totalItems = 0;
-        itemInputs.forEach(input => {
-            totalItems += parseInt(input.value, 10) || 0;
-        });
-
-        // 5. Cek semua field wajib
-        const isAllFilled = [...form.querySelectorAll('[required]')].every(input => input.value.trim() !== '');
         
-        // --- Atur Status Tombol & Pesan ---
-        if (isAllFilled && isFormValid && totalItems > 0) {
+        // Validasi Jumlah Orang
+        const jumlahOrang = parseInt(jumlahOrangInput.value, 10);
+        if (isNaN(jumlahOrang) || jumlahOrang < 1) {
+            if (jumlahOrangInput.value.trim() !== '') { 
+                validationMessage = 'Error: Number of people must be at least 1.';
+            }
+            isFormValid = false;
+        }
+
+        // Cek semua field wajib
+        const isAllFilled = [...form.querySelectorAll('[required]')].every(input => {
+            if (input.type === 'number') return input.value.trim() !== '' && parseInt(input.value, 10) > 0;
+            return input.value.trim() !== '';
+        });
+        
+        if (isAllFilled && isFormValid) {
             submitButton.disabled = false;
             statusMessage.innerText = 'All fields are valid. Ready to submit.';
             statusMessage.className = 'status-sukses';
         } else {
             submitButton.disabled = true;
-            
-            // Tentukan pesan error prioritas
-            if (isAllFilled && totalItems === 0) {
-                validationMessage = 'Error: You must request at least one piece of equipment.';
-            } else if (!isAllFilled && (emailInput.value || waInput.value || pickupInput.value)) {
-                 validationMessage = 'Please fill all required fields.';
-            }
-            
-            // Tampilkan pesan jika ada input, atau jika pesan default
-            if(emailInput.value || waInput.value || pickupInput.value || totalItems > 0) {
-                statusMessage.innerText = validationMessage;
-                statusMessage.className = 'status-gagal';
+            if (namaInput.value || idInput.value || emailInput.value || tanggalBookingInput.value) {
+                 statusMessage.innerText = validationMessage;
+                 statusMessage.className = 'status-gagal';
             } else {
-                statusMessage.innerText = 'Please fill out the form to request equipment.';
-                statusMessage.className = '';
+                 statusMessage.innerText = 'Please select a date to see available time slots.';
+                 statusMessage.className = '';
             }
         }
     }
 
     // --- INISIALISASI EVENT LISTENERS ---
 
-    // Set tanggal minimum saat halaman dimuat
-    setMinPickupDateTime();
+    const today = new Date().toISOString().split('T')[0];
+    tanggalBookingInput.setAttribute('min', today);
+
+    tanggalBookingInput.addEventListener('change', () => fetchBookedSlots(tanggalBookingInput.value));
     
-    // Validasi form secara real-time
-    form.querySelectorAll('input, textarea, select').forEach(element => {
-        element.addEventListener('input', validateForm);
-        element.addEventListener('change', validateForm);
-    });
-    
-    // Atur tanggal minimum 'return' berdasarkan tanggal 'pickup'
-    pickupInput.addEventListener('change', () => {
-        if(pickupInput.value) {
-            // Set waktu kembali minimal 1 jam setelah pickup
-            const pickupDate = new Date(pickupInput.value);
-            pickupDate.setTime(pickupDate.getTime() + 60 * 60 * 1000); // tambah 1 jam
-            
-            const minReturnTime = new Date(pickupDate.getTime() - (pickupDate.getTimezoneOffset() * 60000))
-                                .toISOString()
-                                .slice(0, 16);
-            returnInput.setAttribute('min', minReturnTime);
-        }
+    purposeSelect.addEventListener('change', () => {
+        otherPurposeContainer.classList.toggle('hidden', purposeSelect.value !== 'Other');
+        otherPurposeInput.required = (purposeSelect.value === 'Other');
         validateForm();
     });
 
-    // --- EVENT SUBMIT FORM (INI BAGIAN PENTING) ---
+    form.querySelectorAll('input, select').forEach(element => {
+        element.addEventListener('input', validateForm);
+    });
+
+    // --- EVENT SUBMIT FORM ---
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        validateForm(); // Lakukan validasi terakhir
+        validateForm(); 
         if (submitButton.disabled) {
-            statusMessage.innerText = 'Please fill in all required fields correctly.';
+            statusMessage.innerText = 'Please fill in all required fields correctly before submitting.';
             statusMessage.className = 'status-gagal';
             return;
         }
@@ -144,41 +175,20 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.disabled = true;
         submitButton.innerText = "Sending...";
         
-        // Buat objek FormData dari form
-        const formData = new FormData(form);
-        
-        // --- PERUBAHAN UTAMA: Kumpulkan data alat ---
-        // Buat objek untuk menyimpan daftar alat yang dipinjam
-        const itemsBorrowed = {};
-        itemInputs.forEach(input => {
-            const quantity = parseInt(input.value, 10) || 0;
-            if (quantity > 0) {
-                // Gunakan atribut 'name' dari input (cth: "Crimping Tool") sebagai kunci
-                itemsBorrowed[input.name] = quantity;
-            }
-        });
-        
-        // Tambahkan data JSON alat ke FormData sebagai satu string
-        // 'app.py' akan menerima ini sebagai 'itemsBorrowed'
-        formData.append('itemsBorrowed', JSON.stringify(itemsBorrowed));
-        // --- AKHIR PERUBAHAN ---
-
-        // Kirim FormData yang sudah dimodifikasi ke API
-        fetch(`/api/submitEquipmentBooking`, {
+        fetch(`/api/submitBooking`, {
             method: 'POST',
-            body: formData 
+            body: new FormData(form)
         })
         .then(response => response.json())
         .then(data => {
-            // Gunakan 'status: "success"' (dari app.py) untuk cek
             statusMessage.innerText = data.message;
-            statusMessage.className = data.status === 'success' ? 'status-sukses' : 'status-gagal';
-            
-            if (data.status === 'success') {
+            statusMessage.className = data.status === 'sukses' ? 'status-sukses' : 'status-gagal';
+            if (data.status === 'sukses') {
                 form.reset();
-                setMinPickupDateTime(); // Set ulang min date
-                // Set ulang nilai default kuantitas menjadi 0
-                itemInputs.forEach(input => input.value = '0');
+                jumlahOrangInput.value = '1'; 
+                otherPurposeContainer.classList.add('hidden');
+                otherPurposeInput.required = false;
+                fetchBookedSlots(tanggalBookingInput.value); 
             }
         })
         .catch(error => {
@@ -187,12 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.className = 'status-gagal';
         })
         .finally(() => {
-            submitButton.innerText = "Send Borrowing Request";
-            validateForm(); // Validasi ulang untuk menonaktifkan tombol
+            submitButton.innerText = "Send Booking Request";
+            validateForm(); 
         });
     });
 
-    // Validasi awal saat halaman dimuat
-    validateForm();
+    // Inisialisasi awal
+    fetchBookedSlots(tanggalBookingInput.value);
 });
 
