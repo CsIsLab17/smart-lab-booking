@@ -105,9 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let validationMessage = 'Please fill all required fields correctly.';
 
         // Validasi Email
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@my\.sampoernauniversity\.ac\.id$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@(my\.)?sampoernauniversity\.ac\.id$/;
         if (emailInput.value && !emailRegex.test(emailInput.value)) {
-            validationMessage = 'Error: Email must use @my.sampoernauniversity.ac.id domain.';
+            validationMessage = 'Error: Email must use @my.sampoernauniversity.ac.id or @sampoernauniversity.ac.id domain.';
             isFormValid = false;
         }
 
