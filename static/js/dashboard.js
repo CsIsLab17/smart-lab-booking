@@ -1,54 +1,30 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // API Endpoints
-    const LAB_DATA_API = '/api/getDashboardData';
-    const EQUIPMENT_DATA_API = '/api/getEquipmentDashboardData';
+    const API_URL = '/api/getDashboardData';
+    let charts = {};
 
-    let charts = {}; // Object to store chart instances
-
-    /**
-     * Main function to fetch all data and update the dashboard.
-     */
     async function updateDashboard() {
         try {
-            // Fetch both sets of data in parallel
-            const [labResponse, equipResponse] = await Promise.all([
-                fetch(LAB_DATA_API),
-                fetch(EQUIPMENT_DATA_API)
-            ]);
+            const response = await fetch(API_URL);
+            const result = await response.json();
 
-            const labResult = await labResponse.json();
-            const equipResult = await equipResponse.json();
-
-            // Process Lab Data
-            if (labResult.status === 'sukses') {
-                const labData = labResult.data;
-                renderCurrentStatus(labData);
-                
-                // Filter for completed bookings for charts and table
-                const completedBookings = labData.filter(b => b.Status === 'Selesai');
+            if (result.status === 'sukses') {
+                const data = result.data;
+                renderCurrentStatus(data);
+                // Memanggil fungsi render dengan data yang sudah difilter
+                const completedBookings = data.filter(b => b.Status === 'Selesai');
                 renderPurposeChart(completedBookings);
                 renderDailyChart(completedBookings);
                 renderHourlyChart(completedBookings);
                 renderBookingTable(completedBookings);
             } else {
-                console.error("Failed to fetch lab data:", labResult.message);
+                console.error("Failed to fetch dashboard data:", result.message);
             }
-
-            // Process Equipment Data
-            if (equipResult.status === 'sukses') {
-                renderEquipmentTable(equipResult.data);
-            } else {
-                console.error("Failed to fetch equipment data:", equipResult.message);
-            }
-
         } catch (error) {
             console.error("Error connecting to the server:", error);
         }
     }
 
-    /**
-     * Renders the current status of the lab.
-     */
+    // Fungsi status lab saat ini tidak berubah, karena harus real-time
     function renderCurrentStatus(data) {
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -57,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentUser = data.find(booking => {
             const bookingDate = booking ? booking['Tanggal Booking'] : null;
             const status = booking ? booking['Status'] : null;
-            // Status considered "in-use"
+            // Status yang dianggap sedang berjalan adalah "Disetujui" atau "Datang"
             if (bookingDate !== todayStr || (status !== 'Disetujui' && status !== 'Datang')) {
                 return false;
             }
@@ -76,9 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    /**
-     * Renders the booking purpose doughnut chart (based on completed bookings).
-     */
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
     function renderPurposeChart(completedData) {
         const ctx = document.getElementById('purposeChart').getContext('2d');
         const purposes = completedData.map(b => b['Booking Purpose']);
@@ -96,16 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: Object.keys(purposeCounts),
                 datasets: [{
                     data: Object.values(purposeCounts),
-                    backgroundColor: ['#0033A0', '#0055D4', '#4D82D6', '#86A8E0'],
+                    backgroundColor: ['#0033A0', '#0055D4', '#4D82D6'],
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    /**
-     * Renders the daily bookings bar chart (based on completed bookings).
-     */
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
     function renderDailyChart(completedData) {
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -113,13 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         completedData.forEach(booking => {
             if (booking['Tanggal Booking']) {
-                try {
-                    // Menggunakan getUTCDay() agar konsisten tanpa memandang timezone
-                    const dayIndex = new Date(booking['Tanggal Booking']).getUTCDay(); 
-                    dailyCounts[dayIndex]++;
-                } catch(e) {
-                    console.warn("Invalid date format in sheet: ", booking['Tanggal Booking']);
-                }
+                const dayIndex = new Date(booking['Tanggal Booking']).getDay();
+                dailyCounts[dayIndex]++;
             }
         });
 
@@ -144,9 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    /**
-     * Renders the peak hours line chart (based on completed bookings).
-     */
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
     function renderHourlyChart(completedData) {
         const ctx = document.getElementById('hourlyChart').getContext('2d');
         const hourlyCounts = {};
@@ -189,26 +154,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Renders the recent completed lab bookings table.
-     */
+    // PERBAIKAN: Fungsi ini sekarang menerima data yang sudah difilter
     function renderBookingTable(completedData) {
         const tableBody = document.querySelector('#bookingTable tbody');
         tableBody.innerHTML = '';
         
         const recentBookings = completedData
-            .filter(b => b.Timestamp)
+            .filter(b => b.Timestamp) // Memastikan ada timestamp untuk diurutkan
             .sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']))
             .slice(0, 10);
-            
-        if (recentBookings.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No completed bookings found.</td></tr>';
-            return;
-        }
             
         recentBookings.forEach(booking => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${booking['Nama'] || ''}</td>
                 <td>${booking['Tanggal Booking'] || ''}</td>
-                <td>${(booking['Waktu Mulai'] || '')} - ${(booking['Waktu Selesai'] || '')}
+                <td>${(booking['Waktu Mulai'] || '')} - ${(booking['Waktu Selesai'] || '')}</td>
+                <td>${booking['Booking Purpose'] || ''}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function timeToMinutes(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return 0;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 30000);
+});
