@@ -1,79 +1,198 @@
-.equipment-section {
-    margin-bottom: 25px;
+/* Kontainer utama untuk form, sedikit lebih lebar */
+.container-equipment {
+    max-width: 900px; 
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px 40px 40px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
 }
 
-.equipment-section h3 {
-    color: #0033A0;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-    font-size: 1.25rem;
-}
-
-.equipment-grid {
+/* Menggunakan CSS Grid untuk tata letak 2 kolom */
+.equipment-form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px 40px; 
+}
+
+/* Kolom input standar (nama, email, dll.) */
+.form-column-left {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Kolom untuk daftar alat */
+.form-column-right {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Aturan untuk textarea */
+.form-column-left textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box; 
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.3s;
+}
+
+.form-column-left textarea:focus {
+    outline: none;
+    border-color: #0033A0;
+}
+
+.equipment-group {
+    margin-bottom: 20px;
+}
+
+.equipment-group h3 {
+    color: #0033A0;
+    border-bottom: 2px solid #f4f8ff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: left;
+}
+
+/* Daftar alat */
+.equipment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
     gap: 20px;
 }
 
+/* Kotak untuk setiap alat */
 .equipment-item {
-    border: 1px solid #ddd;
+    background-color: #fafcff;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     text-align: center;
-    background-color: #f9f9f9;
     transition: box-shadow 0.2s;
+    position: relative; 
 }
 
 .equipment-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 10px rgba(0, 51, 160, 0.1);
 }
 
-.equipment-item img {
+/* Placeholder untuk gambar alat */
+.equipment-item img.item-image {
     width: 100%;
-    height: 100px;
-    object-fit: cover;
+    height: 100px; 
+    object-fit: cover; 
     border-radius: 4px;
     background-color: #eee;
     margin-bottom: 10px;
 }
 
 .equipment-item label {
+    font-size: 1rem;
     font-weight: 600;
     color: #333;
-    font-size: 0.9rem;
     display: block;
     margin-bottom: 5px;
+    line-height: 1.3;
 }
 
-.equipment-item .stock-info {
-    font-size: 0.8rem;
-    color: #777;
+/* Label stok */
+.item-stock-label {
     display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #888;
     margin-bottom: 10px;
+    height: 1.2em;
 }
 
+/* Input untuk kuantitas */
 .equipment-item input[type="number"] {
-    width: 100%;
+    width: 80px;
     padding: 8px;
-    margin-top: 5px;
+    text-align: center;
     border: 1px solid #ccc;
     border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* Menyembunyikan panah di input angka untuk tampilan bersih */
+.equipment-item input[type=number] {
+  -moz-appearance: textfield;
+}
+.equipment-item input::-webkit-outer-spin-button,
+.equipment-item input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* REVISI: Gaya untuk item yang tidak bisa dipinjam */
+.cannot-borrow-item {
+    background-color: #f8f8f8;
+    border-color: #ddd;
+    opacity: 0.7;
+    position: relative;
+}
+
+/* Pseudo-element untuk 'Not for Loan' */
+.cannot-borrow-item::after {
+    content: 'Not for Loan';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #a3a3a3;
+    background-color: rgba(230, 230, 230, 0.7);
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cannot-borrow-item .item-image,
+.cannot-borrow-item label,
+.cannot-borrow-item input {
+    filter: grayscale(100%);
+    opacity: 0.6;
+}
+
+.cannot-borrow-item input {
+    background-color: #eee;
+}
+
+/* Gaya untuk pesan status di form (dipinjam dari style.css) */
+.status-message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    display: block;
     box-sizing: border-box;
 }
+.status-sukses { background-color: #e6f7ff; color: #0055D4; }
+.status-gagal { background-color: #ffe6e6; color: #D4002A; }
+.status-processing { background-color: #fffbe6; color: #c28c04; }
 
-/* Keterangan untuk staf */
-.staff-only {
-    font-weight: 700;
-    color: #D4002A; /* Merah */
+/* Responsif untuk layar kecil */
+@media (max-width: 768px) {
+    .equipment-form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Keterangan tidak bisa dipinjam */
-.not-borrowable {
-    text-decoration: line-through;
-    color: #999;
-}
-.not-borrowable .stock-info {
-    text-decoration: none;
-    color: #999;
+/* Gaya untuk pesan flash (dipinjam dari style.css) */
+.flash-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
 }
