@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .finally(() => {
             submitButton.innerText = "Send Borrowing Request";
-            submitButton.disabled = true;
+            validateForm();
         });
     });
 
