@@ -20,7 +20,7 @@ load_dotenv()
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 # Secret key for session management (required for login)
-app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-please-change")
+app.secret_key = os.getenv("SECRET_KEY", "LfB@(Vbzdtw5^Fp/q=U4{88y[NOn}<")
 
 # --- CONFIGURATION FROM ENVIRONMENT VARIABLES ---
 # Lab Booking
