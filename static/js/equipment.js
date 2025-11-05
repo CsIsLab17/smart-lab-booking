@@ -14,23 +14,121 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Input Kuantitas Alat (semua input angka di dalam item)
     const itemInputs = form.querySelectorAll('.equipment-item input[type="number"]');
+    const itemLabels = form.querySelectorAll('.equipment-item .item-stock-label');
+    
+    // Variabel untuk menyimpan stok
+    let currentAvailableStock = {};
+    let isFetchingStock = false;
 
-    // --- FUNGSI VALIDASI ---
+    // --- FUNGSI API ---
+
+    /**
+     * Mengambil stok alat yang tersedia dari backend berdasarkan rentang waktu.
+     */
+    async function fetchEquipmentAvailability() {
+        const pickup = pickupInput.value;
+        const returnDate = returnInput.value;
+
+        // Hanya jalankan jika kedua tanggal valid
+        if (!pickup || !returnDate || new Date(returnDate) <= new Date(pickup)) {
+            resetStockView();
+            validateForm();
+            return;
+        }
+
+        isFetchingStock = true;
+        submitButton.disabled = true;
+        statusMessage.innerText = 'Checking item availability...';
+        statusMessage.className = 'status-processing';
+        
+        try {
+            const response = await fetch(`/api/getEquipmentAvailability?pickup=${pickup}&return_date=${returnDate}`);
+            const result = await response.json();
+
+            if (result.status === 'sukses') {
+                currentAvailableStock = result.data;
+                statusMessage.innerText = 'Stock loaded. Please select your items.';
+                statusMessage.className = 'status-sukses';
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Error fetching stock:', error);
+            currentAvailableStock = {};
+            statusMessage.innerText = error.message || 'Failed to check stock. Please try again.';
+            statusMessage.className = 'status-gagal';
+        } finally {
+            isFetchingStock = false;
+            updateFormAvailability();
+            validateForm();
+        }
+    }
+
+    // --- FUNGSI DOM & VALIDASI ---
+
+    /**
+     * Memperbarui tampilan form berdasarkan stok yang tersedia (dari currentAvailableStock).
+     */
+    function updateFormAvailability() {
+        itemLabels.forEach(label => {
+            const itemName = label.dataset.itemName; // Mengambil nama item dari 'data-item-name'
+            
+            if (itemName in currentAvailableStock) {
+                const stock = currentAvailableStock[itemName];
+                const inputEl = form.querySelector(`input[name="${itemName}"]`);
+
+                if (stock > 0) {
+                    label.innerText = `(${stock} available)`;
+                    label.style.color = '#0055D4';
+                    inputEl.disabled = false;
+                    inputEl.max = stock;
+                } else {
+                    label.innerText = '(Out of Stock)';
+                    label.style.color = '#D4002A';
+                    inputEl.disabled = true;
+                    inputEl.value = 0;
+                }
+            } else if (label.closest('.cannot-borrow-item')) {
+                 label.innerText = '(Not for Loan)';
+                 label.style.color = '#888';
+            } else {
+                label.innerText = '(Unavailable)';
+                label.style.color = '#D4002A';
+            }
+        });
+    }
+
+    /**
+     * Mereset tampilan stok jika tanggal tidak valid.
+     */
+    function resetStockView() {
+        itemLabels.forEach(label => {
+             if (label.closest('.cannot-borrow-item')) {
+                 label.innerText = '(Not for Loan)';
+                 label.style.color = '#888';
+             } else {
+                label.innerText = '(Select Dates)';
+                label.style.color = '#888';
+             }
+        });
+        itemInputs.forEach(input => {
+            if (!input.closest('.cannot-borrow-item')) {
+                input.disabled = true; // Nonaktifkan input jika tanggal tidak valid
+                input.value = 0;
+            }
+        });
+        currentAvailableStock = {};
+    }
 
     /**
      * Mengatur tanggal & waktu minimum untuk input pickup (24 jam dari sekarang).
      */
     function setMinPickupDateTime() {
         const now = new Date();
-        // Tambahkan 24 jam (dalam milidetik)
-        now.setTime(now.getTime() + 24 * 60 * 60 * 1000); 
-        
-        // Format ke string YYYY-MM-DDTHH:MM yang dibutuhkan oleh <input datetime-local>
-        // Kita perlu menyesuaikan dengan timezone lokal, bukan UTC
+        now.setTime(now.getTime() + 24 * 60 * 60 * 1000); // Tambah 24 jam
         const localISOTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
                             .toISOString()
                             .slice(0, 16);
-        
         pickupInput.setAttribute('min', localISOTime);
     }
 
@@ -38,13 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
      * Fungsi utama untuk memvalidasi seluruh form.
      */
     function validateForm() {
+        if (isFetchingStock) return; // Jangan validasi saat sedang mengambil data
+
         let isFormValid = true;
         let validationMessage = 'Please fill all required fields correctly.';
 
         // 1. Validasi Email
         const emailRegex = /^[a-zA-Z0-9._%+-]+@(my\.)?sampoernauniversity\.ac\.id$/;
         if (emailInput.value && !emailRegex.test(emailInput.value)) {
-            validationMessage = 'Error: Email must use @my.sampoernauniversity.ac.id or @sampoernauniversity.ac.id domain.';
+            validationMessage = 'Error: Email must use SU domain (@my.sampoernauniversity.ac.id or @sampoernauniversity.ac.id).';
             isFormValid = false;
         }
 
@@ -57,8 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Validasi Tanggal & Waktu
         const now = new Date();
-        // Beri toleransi 1 menit untuk menghindari error pembulatan
-        const minPickupDate = new Date(now.getTime() + 24 * 60 * 60 * 1000 - 60000); 
+        const minPickupDate = new Date(now.getTime() + 24 * 60 * 60 * 1000 - 60000); // Toleransi 1 menit
         const pickupDate = new Date(pickupInput.value);
         const returnDate = new Date(returnInput.value);
 
@@ -73,7 +172,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // 4. Validasi Kuantitas Alat
         let totalItems = 0;
         itemInputs.forEach(input => {
-            totalItems += parseInt(input.value, 10) || 0;
+            if (input.closest('.cannot-borrow-item')) return; // Abaikan item yg tidak bisa dipinjam
+            
+            const quantity = parseInt(input.value, 10) || 0;
+            totalItems += quantity;
+
+            // Cek apakah kuantitas melebihi stok
+            const itemName = input.name;
+            if (itemName in currentAvailableStock) {
+                const maxStock = currentAvailableStock[itemName];
+                if (quantity > maxStock) {
+                    validationMessage = `Error: Quantity for ${itemName} exceeds available stock (${maxStock}).`;
+                    isFormValid = false;
+                }
+            }
         });
 
         // 5. Cek semua field wajib
@@ -82,22 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Atur Status Tombol & Pesan ---
         if (isAllFilled && isFormValid && totalItems > 0) {
             submitButton.disabled = false;
-            statusMessage.innerText = 'All fields are valid. Ready to submit.';
-            statusMessage.className = 'status-sukses';
+            if (statusMessage.className !== 'status-gagal') {
+                statusMessage.innerText = 'All fields are valid. Ready to submit.';
+                statusMessage.className = 'status-sukses';
+            }
         } else {
             submitButton.disabled = true;
-            
-            // Tentukan pesan error prioritas
             if (isAllFilled && totalItems === 0) {
                 validationMessage = 'Error: You must request at least one piece of equipment.';
             } else if (!isAllFilled && (emailInput.value || waInput.value || pickupInput.value)) {
                  validationMessage = 'Please fill all required fields.';
             }
             
-            // Tampilkan pesan jika ada input, atau jika pesan default
             if(emailInput.value || waInput.value || pickupInput.value || totalItems > 0) {
-                statusMessage.innerText = validationMessage;
-                statusMessage.className = 'status-gagal';
+                if (isFormValid) { // Jika form valid tapi belum lengkap
+                     statusMessage.innerText = validationMessage;
+                     statusMessage.className = 'status-gagal';
+                }
+            } else if (!pickupInput.value || !returnInput.value) {
+                statusMessage.innerText = 'Please select pickup and return dates to check stock.';
+                statusMessage.className = '';
             } else {
                 statusMessage.innerText = 'Please fill out the form to request equipment.';
                 statusMessage.className = '';
@@ -109,17 +225,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set tanggal minimum saat halaman dimuat
     setMinPickupDateTime();
+    resetStockView(); // Panggil ini untuk menonaktifkan input di awal
     
     // Validasi form secara real-time
     form.querySelectorAll('input, textarea, select').forEach(element => {
         element.addEventListener('input', validateForm);
-        element.addEventListener('change', validateForm);
     });
+
+    // Panggil API saat tanggal/waktu berubah
+    pickupInput.addEventListener('change', fetchEquipmentAvailability);
+    returnInput.addEventListener('change', fetchEquipmentAvailability);
     
     // Atur tanggal minimum 'return' berdasarkan tanggal 'pickup'
     pickupInput.addEventListener('change', () => {
         if(pickupInput.value) {
-            // Set waktu kembali minimal 1 jam setelah pickup
             const pickupDate = new Date(pickupInput.value);
             pickupDate.setTime(pickupDate.getTime() + 60 * 60 * 1000); // tambah 1 jam
             
@@ -128,13 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .slice(0, 16);
             returnInput.setAttribute('min', minReturnTime);
         }
-        validateForm();
     });
 
-    // --- EVENT SUBMIT FORM (INI BAGIAN PENTING) ---
+    // --- EVENT SUBMIT FORM ---
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        validateForm(); // Lakukan validasi terakhir
+        validateForm();
         if (submitButton.disabled) {
             statusMessage.innerText = 'Please fill in all required fields correctly.';
             statusMessage.className = 'status-gagal';
@@ -144,41 +262,33 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.disabled = true;
         submitButton.innerText = "Sending...";
         
-        // Buat objek FormData dari form
         const formData = new FormData(form);
-        
-        // --- PERUBAHAN UTAMA: Kumpulkan data alat ---
-        // Buat objek untuk menyimpan daftar alat yang dipinjam
         const itemsBorrowed = {};
         itemInputs.forEach(input => {
+            if (input.closest('.cannot-borrow-item')) return;
             const quantity = parseInt(input.value, 10) || 0;
             if (quantity > 0) {
-                // Gunakan atribut 'name' dari input (cth: "Crimping Tool") sebagai kunci
                 itemsBorrowed[input.name] = quantity;
             }
         });
         
-        // Tambahkan data JSON alat ke FormData sebagai satu string
-        // 'app.py' akan menerima ini sebagai 'itemsBorrowed'
         formData.append('itemsBorrowed', JSON.stringify(itemsBorrowed));
-        // --- AKHIR PERUBAHAN ---
 
-        // Kirim FormData yang sudah dimodifikasi ke API
         fetch(`/api/submitEquipmentBooking`, {
             method: 'POST',
             body: formData 
         })
         .then(response => response.json())
         .then(data => {
-            // Gunakan 'status: "success"' (dari app.py) untuk cek
             statusMessage.innerText = data.message;
             statusMessage.className = data.status === 'success' ? 'status-sukses' : 'status-gagal';
             
             if (data.status === 'success') {
                 form.reset();
-                setMinPickupDateTime(); // Set ulang min date
-                // Set ulang nilai default kuantitas menjadi 0
+                setMinPickupDateTime();
                 itemInputs.forEach(input => input.value = '0');
+                resetStockView();
+                validateForm();
             }
         })
         .catch(error => {
@@ -188,11 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .finally(() => {
             submitButton.innerText = "Send Borrowing Request";
-            validateForm(); // Validasi ulang untuk menonaktifkan tombol
+            submitButton.disabled = true;
         });
     });
 
-    // Validasi awal saat halaman dimuat
     validateForm();
 });
-
