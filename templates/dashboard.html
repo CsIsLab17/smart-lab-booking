@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Utilization Dashboard</title>
-    <!-- PERBAIKAN: Menggunakan url_for untuk semua file statis -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <!-- Tautan ke CSS Navigasi dan CSS Dashboard -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
+
     <div class="header">
         <div class="header-left">
-            <img src="{{ url_for('static', filename='New-SU-Logo-PNG_White.png') }}" alt="Logo" class="logo">
+            <img src="{{ url_for('static', filename='New SU Logo PNG_White (1) (1).png') }}" alt="Logo" class="logo">
             <h1>Lab Utilization Dashboard</h1>
         </div>
         <div class="header-right">
-            <a href="{{ url_for('booking_form') }}">Booking</a>
+            <a href="{{ url_for('home') }}">Lab Booking</a>
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
-            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('login') }}">Admin</a>
         </div>
     </div>
-
+    
     <div class="container">
         <div class="row">
             <div class="widget full-width">
@@ -32,6 +33,7 @@
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="widget">
                 <h2>Booking Purpose Distribution</h2>
@@ -46,17 +48,19 @@
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="widget full-width">
-                <h2>Peak Hours Analysis</h2>
+                <h2>Peak Hours Analysis (Completed)</h2>
                 <div class="chart-container-large">
                      <canvas id="hourlyChart"></canvas>
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="widget full-width">
-                <h2>Recent Completed Bookings</h2>
+                <h2>Recent Completed Lab Bookings</h2>
                 <div class="table-container">
                     <table id="bookingTable">
                         <thead>
@@ -68,15 +72,39 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Data lab booking akan diisi oleh JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <!-- REVISI: Tabel baru untuk status equipment -->
+        <div class="row">
+            <div class="widget full-width">
+                <h2>Currently Active Equipment Loans</h2>
+                <div class="table-container">
+                    <table id="equipmentTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Items Borrowed</th>
+                                <th>Return Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data equipment akan diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- AKHIR REVISI -->
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PERBAIKAN: Menggunakan url_for untuk file JavaScript -->
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

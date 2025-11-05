@@ -19,8 +19,7 @@ from email.mime.image import MIMEImage
 load_dotenv()
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
-# Secret key for session management (required for login)
-app.secret_key = os.getenv("SECRET_KEY", "LfB@(Vbzdtw5^Fp/q=U4{88y[NOn}<")
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-please-change")
 
 # --- CONFIGURATION FROM ENVIRONMENT VARIABLES ---
 # Lab Booking
@@ -30,7 +29,7 @@ SHEET_NAME = os.getenv("SHEET_NAME")
 # Equipment Booking
 EQUIPMENT_SHEET_ID = os.getenv("EQUIPMENT_SHEET_ID")
 EQUIPMENT_SHEET_NAME = os.getenv("EQUIPMENT_SHEET_NAME")
-INVENTORY_SHEET_NAME = os.getenv("INVENTORY_SHEET_NAME") # BARU
+INVENTORY_SHEET_NAME = os.getenv("INVENTORY_SHEET_NAME")
 
 # General Config
 APP_URL = os.getenv("APP_URL")
@@ -86,7 +85,6 @@ def get_equipment_sheet():
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        # Menggunakan ID dan Nama Sheet yang baru
         sheet = client.open_by_key(EQUIPMENT_SHEET_ID).worksheet(EQUIPMENT_SHEET_NAME)
         print("Successfully connected to Google Sheets (Equipment Booking).")
         return sheet
@@ -95,7 +93,7 @@ def get_equipment_sheet():
         return None
 
 def get_inventory_sheet():
-    """Menghubungkan ke Google Sheets (Sheet Inventory)."""
+    """Connects to the Inventory Google Sheet."""
     try:
         creds_dict = get_google_creds()
         if not creds_dict:
@@ -104,7 +102,6 @@ def get_inventory_sheet():
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        # Membuka sheet 'Inventory' dari spreadsheet 'Equipment'
         sheet = client.open_by_key(EQUIPMENT_SHEET_ID).worksheet(INVENTORY_SHEET_NAME)
         print("Successfully connected to Google Sheets (Inventory).")
         return sheet
@@ -115,28 +112,23 @@ def get_inventory_sheet():
 # --- HELPER FUNCTIONS & EMAIL TEMPLATES ---
 
 def time_to_minutes(time_str):
-    """Converts 'HH:MM' time string to total minutes."""
     if isinstance(time_str, str) and ':' in time_str:
         h, m = map(int, time_str.split(':'))
         return h * 60 + m
     return 0
 
 def parse_datetime_local(dt_str):
-    """Converts YYYY-MM-DDTHH:MM string to a datetime object."""
     try:
-        # Format from <input datetime-local>
         return datetime.strptime(dt_str, '%Y-%m-%dT%H:%M')
     except ValueError:
-        # Fallback for slightly different ISO formats
         return datetime.fromisoformat(dt_str)
     except Exception as e:
         print(f"Failed to parse datetime: {dt_str}. Error: {e}")
         return None
 
 def send_email(to_address, subject, html_body, qr_image_bytes=None):
-    """Sends an email with or without a QR code attachment."""
     try:
-        port = int(SMTP_PORT or 587) # Default to port 587 if not set
+        port = int(SMTP_PORT or 587) 
         msg = MIMEMultipart('related')
         msg['From'] = f"Sampoerna Lab Booking <{SMTP_SENDER_EMAIL}>"
         msg['To'] = to_address
@@ -160,12 +152,9 @@ def send_email(to_address, subject, html_body, qr_image_bytes=None):
         print(f"Failed to send email: {e}")
 
 # --- Email Templates (Lab Booking) ---
-
 def create_approval_email_body(data, row_id):
-    """Creates the HTML email body for lab booking approval."""
     approve_url = f"{APP_URL}/approve?id={row_id}"
     reject_url = f"{APP_URL}/reject?id={row_id}"
-    
     return f"""
     <p>A new lab booking request has been submitted with the following details:</p>
     <ul>
@@ -183,7 +172,6 @@ def create_approval_email_body(data, row_id):
     """
 
 def create_approved_email_body(user_data, checkin_url):
-    """Creates the HTML email body for an approved lab booking (with QR Code)."""
     formatted_date = datetime.strptime(user_data.get('tanggalBooking', ''), '%Y-%m-%d').strftime('%d/%m/%Y')
     return f"""
     <html><body><h2>Hello {user_data.get('nama')},</h2>
@@ -195,7 +183,6 @@ def create_approved_email_body(user_data, checkin_url):
     """
 
 def create_rejected_email_body(data):
-    """Creates the HTML email body for a rejected lab booking."""
     formatted_date = datetime.strptime(data.get('tanggalBooking', ''), '%Y-%m-%d').strftime('%d/%m/%Y')
     return f"""
     <h2>Hello {data.get('nama')},</h2>
@@ -205,25 +192,17 @@ def create_rejected_email_body(data):
     """
 
 # --- Email Templates (Equipment Booking) ---
-
 def create_equipment_approval_email(data, row_id):
-    """Creates the HTML email body for equipment borrowing approval."""
     approve_url = f"{APP_URL}/equipment_approve?id={row_id}"
     reject_url = f"{APP_URL}/equipment_reject?id={row_id}"
-    
     items_list_html = ""
     try:
-        # data['itemsBorrowed'] is a JSON string
         items_dict = json.loads(data.get('itemsBorrowed', '{}'))
-        if not items_dict:
-            items_list_html = "<li>No items were selected.</li>"
+        if not items_dict: items_list_html = "<li>No items were selected.</li>"
         else:
             for item, quantity in items_dict.items():
                 items_list_html += f"<li><b>{item}:</b> {quantity} unit(s)</li>"
-    except Exception as e:
-        print(f"Error parsing itemsBorrowed JSON in email: {e}")
-        items_list_html = "<li>Failed to parse item list.</li>"
-
+    except: items_list_html = "<li>Failed to parse item list.</li>"
     return f"""
     <p>A new equipment borrowing request has been submitted:</p>
     <ul>
@@ -236,16 +215,13 @@ def create_equipment_approval_email(data, row_id):
       <li><b>Purpose:</b> {data.get('purpose')}</li>
     </ul>
     <p><b>Items Requested:</b></p>
-    <ul>
-      {items_list_html}
-    </ul>
+    <ul>{items_list_html}</ul>
     <p>Please approve or reject this request:</p>
     <a href="{approve_url}" style="background-color: #0033A0; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">APPROVE</a>
     <a href="{reject_url}" style="background-color: #D4002A; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; margin-left: 10px;">REJECT</a>
     """
 
 def create_equipment_approved_email(user_data):
-    """Creates the confirmation email for an approved equipment loan."""
     return f"""
     <html><body><h2>Hello {user_data.get('nama')},</h2>
       <p>Your equipment borrowing request has been approved.</p>
@@ -259,7 +235,6 @@ def create_equipment_approved_email(user_data):
     """
 
 def create_equipment_rejected_email(user_data):
-    """Creates the rejection email for an equipment loan."""
     return f"""
     <h2>Hello {user_data.get('nama')},</h2>
     <p>We regret to inform you that your equipment borrowing request could not be approved at this time.</p>
@@ -268,7 +243,6 @@ def create_equipment_rejected_email(user_data):
 
 # --- LOGIN DECORATOR ---
 def login_required(f):
-    """Decorator to restrict access to certain routes."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
@@ -278,34 +252,28 @@ def login_required(f):
     return decorated_function
 
 # --- PAGE ROUTES ---
-
 @app.route('/')
 def home():
-    """Main route, shows the public lab booking form."""
     return render_template('index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    """Route for the public dashboard."""
     return render_template('dashboard.html')
 
 @app.route('/scan')
 def scan_qr():
-    """Route for the public QR scanner page."""
     return render_template('scan.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Route for the admin login page."""
     if 'logged_in' in session:
-        return redirect(url_for('admin_panel')) # If already logged in, go to admin panel
-        
+        return redirect(url_for('admin_panel'))
     if request.method == 'POST':
         email = request.form['username']
         password = request.form['password']
         if email == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
-            return redirect(url_for('admin_panel')) # Redirect to admin panel
+            return redirect(url_for('admin_panel'))
         else:
             flash('Invalid Credentials. Please try again.', 'error')
             return redirect(url_for('login'))
@@ -313,25 +281,21 @@ def login():
 
 @app.route('/logout')
 def logout():
-    """Route for logging out the admin."""
     session.pop('logged_in', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
 @app.route('/booking')
 def booking_form():
-    """Duplicate route for the lab booking form."""
     return render_template('index.html')
 
 @app.route('/equipment')
 def equipment_booking_form():
-    """Route for the public equipment booking form."""
     return render_template('equipment_booking.html')
 
 @app.route('/admin_panel')
 @login_required
 def admin_panel():
-    """Displays the admin-only control panel."""
     return render_template('admin_panel.html')
 
 # --- API ENDPOINTS ---
@@ -339,7 +303,6 @@ def admin_panel():
 # --- API (Lab Booking) ---
 @app.route('/api/getBookedSlots', methods=['GET'])
 def get_booked_slots():
-    """API to get booked lab slots for a specific date."""
     sheet = get_lab_booking_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
@@ -347,7 +310,6 @@ def get_booked_slots():
         tanggal = request.args.get('tanggal')
         if not tanggal: 
             return jsonify({'status': 'gagal', 'message': 'Date parameter not found'}), 400
-        
         all_records = sheet.get_all_records()
         booked_slots = [
             {'start': r.get('Waktu Mulai'), 'end': r.get('Waktu Selesai')} 
@@ -360,7 +322,6 @@ def get_booked_slots():
 
 @app.route('/api/getDashboardData', methods=['GET'])
 def get_dashboard_data():
-    """API to get all data for the dashboard."""
     sheet = get_lab_booking_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
@@ -371,9 +332,61 @@ def get_dashboard_data():
     except Exception as e:
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
 
+# --- API (Equipment Booking) ---
+
+def get_available_stock(pickup_str, return_str):
+    """
+    Fungsi helper baru untuk menghitung stok yang tersedia berdasarkan tumpang tindih waktu.
+    """
+    available_stock = {}
+    
+    inv_sheet = get_inventory_sheet()
+    if not inv_sheet: raise Exception("Failed to connect to inventory database.")
+    inventory_records = inv_sheet.get_all_records()
+    master_stock = {item['ItemName']: int(item['TotalStock']) for item in inventory_records}
+    available_stock = master_stock.copy()
+
+    book_sheet = get_equipment_sheet()
+    if not book_sheet: raise Exception("Failed to connect to bookings database.")
+    booking_records = book_sheet.get_all_records()
+
+    req_start = parse_datetime_local(pickup_str)
+    req_end = parse_datetime_local(return_str)
+
+    for booking in booking_records:
+        status = booking.get('Status')
+        if status in ["Menunggu Persetujuan", "Disetujui", "Datang"]: # Status yang mengurangi stok
+            try:
+                book_start = parse_datetime_local(booking.get('PickupTime'))
+                book_end = parse_datetime_local(booking.get('ReturnTime'))
+                if (req_start < book_end and book_start < req_end): # Cek overlap
+                    items_borrowed = json.loads(booking.get('ItemsBorrowed', '{}'))
+                    for item_name, quantity in items_borrowed.items():
+                        if item_name in available_stock:
+                            available_stock[item_name] -= int(quantity)
+            except Exception as e:
+                print(f"Skipping row with invalid data (ID: {booking.get('ID Baris')}): {e}")
+
+    return available_stock
+
+@app.route('/api/getEquipmentAvailability', methods=['GET'])
+def get_equipment_availability():
+    """API untuk mengecek ketersediaan stok alat."""
+    try:
+        pickup_str = request.args.get('pickup')
+        return_str = request.args.get('return_date')
+        if not pickup_str or not return_str:
+            return jsonify({'status': 'gagal', 'message': 'Pickup and return dates are required.'}), 400
+
+        available_stock = get_available_stock(pickup_str, return_str)
+        return jsonify({'status': 'sukses', 'data': available_stock})
+    except Exception as e:
+        print(f"Error in getEquipmentAvailability: {e}")
+        return jsonify({'status': 'gagal', 'message': str(e)}), 500
+
 @app.route('/api/submitBooking', methods=['POST'])
 def handle_form_submission():
-    """API to handle the public lab booking form submission."""
+    """API untuk menerima data formulir booking lab."""
     sheet = get_lab_booking_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
@@ -383,7 +396,6 @@ def handle_form_submission():
         new_start = time_to_minutes(data['waktuMulai'])
         new_end = time_to_minutes(data['waktuSelesai'])
 
-        # Check for conflicts
         for record in all_records:
             if str(record.get('Tanggal Booking')) == data['tanggalBooking'] and record.get('Status') in ["Disetujui", "Menunggu Persetujuan", "Datang"]:
                 existing_start = time_to_minutes(record.get('Waktu Mulai'))
@@ -413,75 +425,6 @@ def handle_form_submission():
     except Exception as e: 
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
 
-# --- API (Equipment Booking) ---
-
-def get_available_stock(pickup_str, return_str):
-    """
-    Fungsi helper baru untuk menghitung stok yang tersedia berdasarkan tumpang tindih waktu.
-    """
-    available_stock = {}
-    
-    # 1. Dapatkan Master Stok
-    inv_sheet = get_inventory_sheet()
-    if not inv_sheet:
-        raise Exception("Failed to connect to inventory database.")
-    
-    inventory_records = inv_sheet.get_all_records()
-    master_stock = {item['ItemName']: int(item['TotalStock']) for item in inventory_records}
-    available_stock = master_stock.copy()
-
-    # 2. Dapatkan Semua Booking Aktif
-    book_sheet = get_equipment_sheet()
-    if not book_sheet:
-        raise Exception("Failed to connect to bookings database.")
-    
-    booking_records = book_sheet.get_all_records()
-
-    # 3. Hitung Stok yang Digunakan
-    req_start = parse_datetime_local(pickup_str)
-    req_end = parse_datetime_local(return_str)
-
-    for booking in booking_records:
-        status = booking.get('Status')
-        # Hanya cek booking yang sedang aktif atau menunggu persetujuan
-        if status in ["Menunggu Persetujuan", "Disetujui", "Datang"]:
-            try:
-                book_start = parse_datetime_local(booking.get('PickupTime'))
-                book_end = parse_datetime_local(booking.get('ReturnTime'))
-
-                # Cek tumpang tindih (overlap)
-                # (StartA < EndB) and (StartB < EndA)
-                if (req_start < book_end and book_start < req_end):
-                    # Ada overlap, kurangi stok
-                    items_borrowed = json.loads(booking.get('ItemsBorrowed', '{}'))
-                    for item_name, quantity in items_borrowed.items():
-                        if item_name in available_stock:
-                            available_stock[item_name] -= int(quantity)
-            except Exception as e:
-                print(f"Skipping row with invalid data (ID: {booking.get('ID Baris')}): {e}")
-
-    return available_stock
-
-
-@app.route('/api/getEquipmentAvailability', methods=['GET'])
-def get_equipment_availability():
-    """
-    API BARU: Menghitung stok alat yang tersedia untuk rentang tanggal tertentu.
-    """
-    try:
-        pickup_str = request.args.get('pickup')
-        return_str = request.args.get('return_date')
-
-        if not pickup_str or not return_str:
-            return jsonify({'status': 'gagal', 'message': 'Pickup and return dates are required.'}), 400
-
-        available_stock = get_available_stock(pickup_str, return_str)
-        return jsonify({'status': 'sukses', 'data': available_stock})
-
-    except Exception as e:
-        print(f"Error in getEquipmentAvailability: {e}")
-        return jsonify({'status': 'gagal', 'message': str(e)}), 500
-
 @app.route('/api/submitEquipmentBooking', methods=['POST'])
 def handle_equipment_submission():
     """API untuk menerima data formulir peminjaman alat (dengan validasi stok)."""
@@ -499,7 +442,6 @@ def handle_equipment_submission():
         if not items_requested_dict:
             return jsonify({'status': 'gagal', 'message': 'You must request at least one item.'}), 400
 
-        # --- Validasi Stok Server-Side ---
         available_stock = get_available_stock(req_start_str, req_end_str)
 
         for item_name, quantity in items_requested_dict.items():
@@ -507,7 +449,6 @@ def handle_equipment_submission():
                 return jsonify({'status': 'gagal', 'message': f"Item {item_name} is not recognized."}), 400
             if int(quantity) > available_stock[item_name]:
                 return jsonify({'status': 'gagal', 'message': f"Stock for {item_name} is no longer available. Only {available_stock[item_name]} left."}), 400
-        # --- Akhir Validasi Stok ---
 
         import uuid
         row_id = str(uuid.uuid4())
@@ -517,8 +458,7 @@ def handle_equipment_submission():
             data.get('nama'), data.get('idPengguna'), data.get('emailPengguna'),
             data.get('waNumber'), data.get('pickupDateTime'), data.get('returnDateTime'),
             data.get('purpose'), items_borrowed_json,
-            "Menunggu Persetujuan",
-            row_id
+            "Menunggu Persetujuan", row_id
         ]
         
         sheet.append_row(new_row, value_input_option='USER_ENTERED')
@@ -530,7 +470,7 @@ def handle_equipment_submission():
     except Exception as e: 
         print(f"Error in submitEquipmentBooking: {e}")
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
-
+        
 # --- API (Admin) ---
 @app.route('/api/admin_lab_booking', methods=['POST'])
 @login_required
@@ -539,25 +479,10 @@ def handle_admin_lab_booking():
     sheet = get_lab_booking_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the database'}), 503
-    
     try:
-        data = request.form.to_dict()
-        
-        # Admin bookings don't check for conflicts
-        
-        import uuid
-        row_id = str(uuid.uuid4())
-        
-        new_row = [
-            datetime.now().isoformat(), 
-            f"[ADMIN] {data['nama']}", data['idPengguna'], data['emailPengguna'],
-            data['tanggalBooking'], data['waktuMulai'], data['waktuSelesai'],
-            data.get('purpose', 'Admin Booking'), data.get('jumlahOrang', '1'), 
-            "Disetujui", # Auto-approved
-            row_id
-        ]
+        data = request.form.to_dict(); import uuid; row_id = str(uuid.uuid4())
+        new_row = [datetime.now().isoformat(), f"[ADMIN] {data['nama']}", data['idPengguna'], data['emailPengguna'], data['tanggalBooking'], data['waktuMulai'], data['waktuSelesai'], data.get('purpose', 'Admin Booking'), data.get('jumlahOrang', '1'), "Disetujui", row_id]
         sheet.append_row(new_row, value_input_option='USER_ENTERED')
-        
         return jsonify({'status': 'success', 'message': 'Admin booking created and auto-approved!'})
     except Exception as e: 
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
@@ -565,40 +490,49 @@ def handle_admin_lab_booking():
 @app.route('/api/admin_equipment_booking', methods=['POST'])
 @login_required
 def handle_admin_equipment_booking():
-    """API for admins to borrow equipment (auto-approved, bypasses stock rules for "cannot-borrow" items)."""
+    """API for admins to borrow equipment (auto-approved)."""
     sheet = get_equipment_sheet()
     if not sheet: 
         return jsonify({'status': 'gagal', 'message': 'Failed to connect to the equipment database'}), 503
-    
     try:
-        data = request.form.to_dict()
-        import uuid
-        row_id = str(uuid.uuid4())
-        
-        # Admin form sends a raw text area for items
+        data = request.form.to_dict(); import uuid; row_id = str(uuid.uuid4())
         items_borrowed_text = data.get('equipmentList', 'No items listed')
-
-        new_row = [
-            datetime.now().isoformat(),
-            f"[ADMIN] {data.get('nama')}", data.get('idPengguna'), data.get('emailPengguna'),
-            data.get('waNumber'), data.get('pickupDateTime'), data.get('returnDateTime'),
-            data.get('purpose'), 
-            items_borrowed_text, # Store the raw text as JSON/string
-            "Disetujui",  # Auto-approved
-            row_id
-        ]
-        
+        new_row = [datetime.now().isoformat(), f"[ADMIN] {data.get('nama')}", data.get('idPengguna'), data.get('emailPengguna'), data.get('waNumber'), data.get('pickupDateTime'), data.get('returnDateTime'), data.get('purpose'), items_borrowed_text, "Disetujui", row_id]
         sheet.append_row(new_row, value_input_option='USER_ENTERED')
-        
         return jsonify({'status': 'success', 'message': 'Admin equipment loan created and auto-approved!'})
     except Exception as e: 
-        print(f"Error in adminEquipmentBooking: {e}")
         return jsonify({'status': 'gagal', 'message': str(e)}), 500
+        
+# --- RUTE API BARU UNTUK DATA DASHBOARD EQUIPMENT ---
+@app.route('/api/getEquipmentDashboardData', methods=['GET'])
+def get_equipment_dashboard_data():
+    """API untuk mengambil data peminjaman alat untuk dashboard."""
+    sheet = get_equipment_sheet()
+    if not sheet: 
+        return jsonify({'status': 'gagal', 'message': 'Failed to connect to the equipment database'}), 503
+    try:
+        all_records = sheet.get_all_records()
+        # Filter data: hanya yang sedang dipinjam ("Disetujui" atau "Datang")
+        now = datetime.now()
+        active_loans = []
+        for record in all_records:
+            if record.get('Status') in ["Disetujui", "Datang"]:
+                try:
+                    # Cek apakah waktu return sudah lewat
+                    return_time = parse_datetime_local(record.get('ReturnTime'))
+                    if return_time > now:
+                        active_loans.append(record)
+                except Exception:
+                    pass # Abaikan data dengan format tanggal salah
+                    
+        return jsonify({'status': 'sukses', 'data': active_loans})
+    except Exception as e:
+        return jsonify({'status': 'gagal', 'message': str(e)}), 500
+        
 
 # --- ACTION ROUTES (Lab Booking) ---
 @app.route('/<action>', methods=['GET'])
 def handle_action(action):
-    """Handles lab booking actions (approve, reject, checkin, checkout)."""
     row_id = request.args.get('id')
     if not row_id: 
         return "Error: ID not found.", 400
@@ -611,7 +545,7 @@ def handle_action(action):
         return render_template('konfirmasi.html', message="Failed to connect to the database.", status="gagal"), 503
 
     try:
-        cell = sheet.find(row_id, in_column=11) # Row ID is in Column K
+        cell = sheet.find(row_id, in_column=11) # Col K
         if not cell: 
             return render_template('konfirmasi.html', message="Booking data not found or already processed.", status="gagal"), 404
         
@@ -621,7 +555,7 @@ def handle_action(action):
             'tanggalBooking': row_values[4], 'waktuMulai': row_values[5], 
             'waktuSelesai': row_values[6]
         }
-        status_col = 10 # Status is in Column J
+        status_col = 10 # Col J
         
         if action == 'approve':
             sheet.update_cell(cell.row, status_col, "Disetujui")
@@ -651,10 +585,8 @@ def handle_action(action):
         return render_template('konfirmasi.html', message=f"An error occurred: {e}", status="gagal"), 500
 
 # --- ACTION ROUTES (Equipment Booking) ---
-
 @app.route('/equipment_approve', methods=['GET'])
 def handle_equipment_approve():
-    """Handles equipment approval."""
     row_id = request.args.get('id')
     if not row_id: return "Error: ID not found.", 400
     
@@ -662,54 +594,37 @@ def handle_equipment_approve():
     if not sheet: return render_template('konfirmasi.html', message="Failed to connect to the equipment database.", status="gagal"), 503
 
     try:
-        cell = sheet.find(row_id, in_column=11) # Row ID is in Column K
+        cell = sheet.find(row_id, in_column=11) # Col K
         if not cell: return render_template('konfirmasi.html', message="Borrowing data not found or already processed.", status="gagal"), 404
 
         row_values = sheet.row_values(cell.row)
-        user_data = {
-            'nama': row_values[1], 
-            'emailPengguna': row_values[3],
-            'pickupDateTime': row_values[5],
-            'returnDateTime': row_values[6]
-        }
-        status_col = 10 # Status is in Column J
+        user_data = {'nama': row_values[1], 'emailPengguna': row_values[3], 'pickupDateTime': row_values[5], 'returnDateTime': row_values[6]}
+        status_col = 10 # Col J
         
         sheet.update_cell(cell.row, status_col, "Disetujui")
-        
         email_body = create_equipment_approved_email(user_data)
         send_email(user_data['emailPengguna'], "Your Equipment Loan Has Been Approved!", email_body)
-        
         message = f"Equipment loan for {user_data['nama']} has been successfully APPROVED."
         return render_template('konfirmasi.html', message=message, status="sukses")
-
     except Exception as e:
         return render_template('konfirmasi.html', message=f"An error occurred: {e}", status="gagal"), 500
 
 @app.route('/equipment_reject', methods=['GET'])
 def handle_equipment_reject():
-    """Handles equipment rejection."""
     row_id = request.args.get('id')
     if not row_id: return "Error: ID not found.", 400
-    
     sheet = get_equipment_sheet()
     if not sheet: return render_template('konfirmasi.html', message="Failed to connect to the equipment database.", status="gagal"), 503
-
     try:
-        cell = sheet.find(row_id, in_column=11) # Row ID is in Column K
+        cell = sheet.find(row_id, in_column=11) # Col K
         if not cell: return render_template('konfirmasi.html', message="Borrowing data not found or already processed.", status="gagal"), 404
-
-        row_values = sheet.row_values(cell.row)
-        user_data = {'nama': row_values[1], 'emailPengguna': row_values[3]}
-        status_col = 10 # Status is in Column J
-        
+        row_values = sheet.row_values(cell.row); user_data = {'nama': row_values[1], 'emailPengguna': row_values[3]}
+        status_col = 10 # Col J
         sheet.update_cell(cell.row, status_col, "Ditolak")
-        
         email_body = create_equipment_rejected_email(user_data)
         send_email(user_data['emailPengguna'], "Your Equipment Loan Request Was Rejected", email_body)
-        
         message = f"Equipment loan for {user_data['nama']} has been REJECTED."
         return render_template('konfirmasi.html', message=message, status="gagal")
-
     except Exception as e:
         return render_template('konfirmasi.html', message=f"An error occurred: {e}", status="gagal"), 500
 
