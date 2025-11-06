@@ -301,6 +301,4 @@ document.addEventListener('DOMContentLoaded', () => {
             validateForm();
         });
     });
-
-    validateForm();
 });
