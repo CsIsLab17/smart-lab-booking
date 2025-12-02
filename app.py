@@ -281,8 +281,8 @@ def login_required(f):
 
 @app.route('/')
 def home():
-    """Main route, shows the public lab booking form."""
-    return render_template('index.html')
+    """Main route, shows the public dashboard."""
+    return render_template('dashboard.html')
 
 @app.route('/dashboard')
 def dashboard():

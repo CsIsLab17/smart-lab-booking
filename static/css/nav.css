@@ -3,15 +3,28 @@
     background: #002169;
     color: white;
     padding: 20px 40px;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    align-self: stretch;
 }
 
 .header-left {
     display: flex;
     align-items: center;
+}
+
+.header-middle {
+    /* center the title horizontally and vertically within the header */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    z-index: 1;
 }
 
 .header-right a {
