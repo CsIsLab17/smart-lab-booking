@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Check-in - Sampoerna University</title>
     <!-- Memuat file CSS yang relevan -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
 </head>
 <!-- Menambahkan kelas scanner-body ke body -->
 <body class="scanner-body">
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='New-SU-Logo-PNG_White.png') }}" alt="Logo" class="logo">
+        </div>
+        <div class="header-middle">
             <h1>QR Scanner</h1>
         </div>
         <div class="header-right">
+            <a href="{{ url_for('dashboard') }}">Home</a>
             <a href="{{ url_for('booking_form') }}">Booking</a>
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('scan_qr') }}">Scan QR</a>
             <a href="{{ url_for('login') }}">Login</a>
         </div>
     </div>

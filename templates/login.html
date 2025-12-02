@@ -13,13 +13,16 @@
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='New-SU-Logo-PNG_White.png') }}" alt="Logo" class="logo">
+        </div>
+        <div class="header-middle">
             <h1>Admin Login</h1>
         </div>
         <div class="header-right">
-            <a href="{{ url_for('home') }}">Lab Booking</a>
+            <a href="{{ url_for('dashboard') }}">Home</a>
+            <a href="{{ url_for('booking_form') }}">Booking</a>
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+            <a href="{{ url_for('login') }}">Login</a>
         </div>
     </div>
 

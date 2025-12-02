@@ -12,9 +12,12 @@
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='New-SU-Logo-PNG_White.png') }}" alt="Logo" class="logo">
+        </div>
+        <div class="header-middle">
             <h1>Lab Utilization Dashboard</h1>
         </div>
         <div class="header-right">
+            <a href="{{ url_for('dashboard') }}">Home</a>
             <a href="{{ url_for('booking_form') }}">Booking</a>
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
@@ -27,9 +30,13 @@
             <div class="widget full-width">
                 <h2>Current Lab Status</h2>
                 <div id="current-status" class="status-free">
-                    <span class="status-icon">✅</span>
-                    <span class="status-text">The lab is currently free.</span>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="widget full-width">
+                <h2>Booking Calendar</h2>
+                <div id="bookingCalendar"></div>
             </div>
         </div>
         <div class="row">
@@ -73,6 +80,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
