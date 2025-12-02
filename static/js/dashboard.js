@@ -191,6 +191,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return hours * 60 + minutes;
     }
 
+    // Utility: truncate text to a maximum length and add ellipsis
+    function truncateText(str, maxLen = 18) {
+        if (!str) return '';
+        if (str.length <= maxLen) return str;
+        return str.slice(0, maxLen - 1) + '…';
+    }
+
     // Render a simple month calendar and annotate days that have bookings
     function renderCalendar(allBookings, targetId = 'bookingCalendar') {
         const container = document.getElementById(targetId);
@@ -314,12 +321,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 visibleBookings.slice(0,5).forEach(b => {
                     const item = document.createElement('div');
-                    item.textContent = `${b['Waktu Mulai'] || ''} — ${b['Waktu Selesai'] || ''} ${b['Nama'] || ''}`.trim();
+                    const displayName = truncateText(b['Nama'] || '', 15);
+                    const start = b['Waktu Mulai'] || '';
+                    const end = b['Waktu Selesai'] || '';
+                    const text = `${start} — ${end} ${displayName}`.trim();
+                    item.textContent = text;
                     item.style.fontSize = '12px';
                     item.style.overflow = 'hidden';
                     item.style.textOverflow = 'ellipsis';
                     item.style.whiteSpace = 'nowrap';
-                    item.title = `${b['Nama'] || ''} — ${b['Waktu Mulai'] || ''} to ${b['Waktu Selesai'] || ''}`;
+                    item.title = `${b['Nama'] || ''} — ${start} to ${end}`;
                     list.appendChild(item);
                 });
 
