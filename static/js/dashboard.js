@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = result.data;
                 renderCurrentStatus(data);
                 // Memanggil fungsi render dengan data yang sudah difilter
-                const completedBookings = data.filter(b => b.Status === 'Selesai');
+                const completedBookings = data.filter(b => ['Datang', 'Selesai'].includes(b['Status']) );
                 renderPurposeChart(completedBookings);
                 renderDailyChart(completedBookings);
                 renderHourlyChart(completedBookings);
@@ -73,13 +73,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }, {});
 
         if (charts.purpose) charts.purpose.destroy();
+        
+        // Sort purposes by count (largest first) and create color mapping
+        const sortedPurposes = Object.entries(purposeCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(entry => entry[0]);
+        
+        const colors = ['#001a66', '#0033A0', '#0052CC', '#0055D4', '#1a75ff', '#3385ff', '#4D82D6', '#6699ff', '#80b3ff', '#99ccff', '#b3d9ff', '#cce5ff'];
+        const bgColors = sortedPurposes.map((_, idx) => colors[idx % colors.length]);
+        const sortedCounts = sortedPurposes.map(purpose => purposeCounts[purpose]);
+        
         charts.purpose = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: Object.keys(purposeCounts),
+                labels: sortedPurposes,
                 datasets: [{
-                    data: Object.values(purposeCounts),
-                    backgroundColor: ['#0033A0', '#0055D4', '#4D82D6'],
+                    data: sortedCounts,
+                    backgroundColor: bgColors,
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
@@ -105,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: dayNames,
                 datasets: [{
-                    label: 'Completed Bookings per Day',
+                    label: 'Bookings per Day',
                     data: dailyCounts,
                     backgroundColor: '#4D82D6',
                     borderColor: '#0033A0',
@@ -147,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: Object.keys(hourlyCounts),
                 datasets: [{
-                    label: 'Peak Hours (Completed)',
+                    label: 'Peak Hours',
                     data: Object.values(hourlyCounts),
                     backgroundColor: 'rgba(0, 85, 212, 0.2)',
                     borderColor: '#0033A0',
@@ -287,6 +297,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const d = String(date.getDate()).padStart(2, '0');
             const iso = `${y}-${m}-${d}`;
 
+            // Check if this day is today or in the past
+            const today = new Date();
+            const todayIso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            const isToday = iso === todayIso;
+            const isPast = iso < todayIso;
+
             const cell = document.createElement('div');
             cell.className = 'calendar-cell';
             cell.style.border = '1px solid rgba(0,0,0,0.06)';
@@ -294,6 +310,16 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.style.minHeight = '60px';
             cell.style.boxSizing = 'border-box';
             cell.style.position = 'relative';
+            
+            // Style past days darker
+            if (isPast) {
+                cell.style.backgroundColor = '#e8e8e8';
+            }
+            // Style today with a highlight color
+            else if (isToday) {
+                cell.style.backgroundColor = 'rgba(230, 247, 255, 1)';
+                cell.style.border = '2px solid rgba(0, 33, 240, 1)';
+            }
 
             const dayLabel = document.createElement('div');
             dayLabel.textContent = String(day);
