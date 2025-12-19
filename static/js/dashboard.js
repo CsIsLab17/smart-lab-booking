@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Determine max text length based on screen size
                 const isMobile = window.innerWidth <= 1200;
-                const maxTextLength = isMobile ? 8 : 30;
+                const maxTextLength = isMobile ? 6 : 30;
 
                 // Only show bookings with an active/approved status,
                 // sorted by Waktu Mulai (earliest first).
