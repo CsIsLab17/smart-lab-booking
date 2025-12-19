@@ -9,12 +9,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
 <body>
+    
     <div class="header">
         <div class="header-left">
             <img src="{{ url_for('static', filename='New-SU-Logo-PNG_White.png') }}" alt="Logo" class="logo">
         </div>
         <div class="header-middle">
-            <h1>Lab Utilization Dashboard</h1>
+            <h1>Dashboard</h1>
         </div>
         <div class="header-right">
             <a href="{{ url_for('dashboard') }}">Home</a>
@@ -22,7 +23,16 @@
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
             <a href="{{ url_for('login') }}">Login</a>
+            <button class="hamburger" onclick="toggleDrawer()">☰</button>
+            <div class="drawer" id="drawer">
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('booking_form') }}">Booking</a>
+                <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
+                <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
         </div>
+        
     </div>
 
     <div class="container">
@@ -86,5 +96,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- PERBAIKAN: Menggunakan url_for untuk file JavaScript -->
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('open');
+        }
+        
+        // Close drawer when clicking outside
+        document.addEventListener('click', function(event) {
+            const drawer = document.getElementById('drawer');
+            const hamburger = document.querySelector('.hamburger');
+            if (drawer.classList.contains('open') && !drawer.contains(event.target) && !hamburger.contains(event.target)) {
+                drawer.classList.remove('open');
+            }
+        });
+    </script>
 </body>
 </html>

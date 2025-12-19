@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Booking Form - Sampoerna University</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
 <body>
     <!-- Header Navigasi -->
@@ -22,6 +22,14 @@
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
             <a href="{{ url_for('login') }}">Login</a>
+            <button class="hamburger" onclick="toggleDrawer()">☰</button>
+            <div class="drawer" id="drawer">
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('booking_form') }}">Booking</a>
+                <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
+                <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
         </div>
     </div>
 
@@ -108,5 +116,20 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('open');
+        }
+        
+        // Close drawer when clicking outside
+        document.addEventListener('click', function(event) {
+            const drawer = document.getElementById('drawer');
+            const hamburger = document.querySelector('.hamburger');
+            if (drawer.classList.contains('open') && !drawer.contains(event.target) && !hamburger.contains(event.target)) {
+                drawer.classList.remove('open');
+            }
+        });
+    </script>
+    
 </body>
 </html>

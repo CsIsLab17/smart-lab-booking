@@ -1,11 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const API_URL = '/api/getDashboardData';
     let charts = {};
+    let lastData = []; // Store last fetched data for re-rendering
     // calendar state to support month navigation
     let calendarState = {
         month: (new Date()).getMonth(), // 0-11
         year: (new Date()).getFullYear()
     };
+
+    function toggleDrawer() {
+        document.getElementById('drawer').classList.toggle('open');
+    }
 
     async function updateDashboard() {
         try {
@@ -14,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (result.status === 'sukses') {
                 const data = result.data;
+                lastData = data; // Store for re-rendering
                 renderCurrentStatus(data);
                 // Memanggil fungsi render dengan data yang sudah difilter
                 const completedBookings = data.filter(b => ['Datang', 'Selesai'].includes(b['Status']) );
@@ -236,26 +242,26 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = '';
         const header = document.createElement('div');
         header.className = 'calendar-header';
-        header.style.display = 'flex';
-        header.style.justifyContent = 'space-between';
-        header.style.alignItems = 'center';
-        header.style.marginBottom = '8px';
 
         const title = document.createElement('div');
         title.textContent = `${monthName(state.month)} ${state.year}`;
-        title.style.fontWeight = '600';
 
         const nav = document.createElement('div');
         const prev = document.createElement('button');
         prev.textContent = '<';
         prev.className = 'cal-prev';
         prev.onclick = () => { changeMonth(-1); };
+        const today = document.createElement('button');
+        today.textContent = 'Today';
+        today.className = 'cal-today';
+        today.onclick = () => { goToToday(); };
         const next = document.createElement('button');
         next.textContent = '>';
         next.className = 'cal-next';
         next.onclick = () => { changeMonth(1); };
 
         nav.appendChild(prev);
+        nav.appendChild(today);
         nav.appendChild(next);
         header.appendChild(title);
         header.appendChild(nav);
@@ -263,18 +269,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const grid = document.createElement('div');
         grid.className = 'calendar-grid';
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-        grid.style.gap = '6px';
 
         // weekday headings
         const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
         weekdays.forEach(d => {
             const cell = document.createElement('div');
             cell.textContent = d;
-            cell.style.fontSize = '12px';
-            cell.style.textAlign = 'center';
-            cell.style.fontWeight = '600';
+            cell.className = 'calendar-cell weekday-header';
             grid.appendChild(cell);
         });
 
@@ -285,7 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div');
             empty.className = 'calendar-cell empty';
-            empty.style.minHeight = '60px';
             grid.appendChild(empty);
         }
 
@@ -305,35 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const cell = document.createElement('div');
             cell.className = 'calendar-cell';
-            cell.style.border = '1px solid rgba(0,0,0,0.06)';
-            cell.style.padding = '6px';
-            cell.style.minHeight = '60px';
-            cell.style.boxSizing = 'border-box';
-            cell.style.position = 'relative';
-            
-            // Style past days darker
             if (isPast) {
-                cell.style.backgroundColor = '#e8e8e8';
-            }
-            // Style today with a highlight color
-            else if (isToday) {
-                cell.style.backgroundColor = 'rgba(230, 247, 255, 1)';
-                cell.style.border = '2px solid rgba(0, 33, 240, 1)';
+                cell.classList.add('past');
+            } else if (isToday) {
+                cell.classList.add('today');
             }
 
             const dayLabel = document.createElement('div');
             dayLabel.textContent = String(day);
-            dayLabel.style.fontSize = '13px';
-            dayLabel.style.fontWeight = '600';
-            dayLabel.style.marginBottom = '6px';
+            dayLabel.className = 'day-number';
             cell.appendChild(dayLabel);
 
             const dayBookings = bookingsOn(iso);
             if (dayBookings.length) {
                 const list = document.createElement('div');
-                list.style.display = 'flex';
-                list.style.flexDirection = 'column';
-                list.style.gap = '4px';
+                list.className = 'booking-list';
+
+                // Determine max text length based on screen size
+                const isMobile = window.innerWidth <= 1200;
+                const maxTextLength = isMobile ? 8 : 30;
 
                 // Only show bookings with an active/approved status,
                 // sorted by Waktu Mulai (earliest first).
@@ -347,16 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 visibleBookings.slice(0,5).forEach(b => {
                     const item = document.createElement('div');
-                    const displayName = truncateText(b['Nama'] || '', 15);
                     const start = b['Waktu Mulai'] || '';
                     const end = b['Waktu Selesai'] || '';
-                    const text = `${start} — ${end} ${displayName}`.trim();
-                    item.textContent = text;
-                    item.style.fontSize = '12px';
-                    item.style.overflow = 'hidden';
-                    item.style.textOverflow = 'ellipsis';
-                    item.style.whiteSpace = 'nowrap';
-                    item.title = `${b['Nama'] || ''} — ${start} to ${end}`;
+                    const fullText = `${start} — ${end} ${b['Nama'] || ''}`.trim();
+                    const displayText = truncateText(fullText, maxTextLength);
+                    item.textContent = displayText;
+                    item.title = fullText;
                     list.appendChild(item);
                 });
 
@@ -364,8 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (extra > 0) {
                     const more = document.createElement('div');
                     more.textContent = `+${extra} more`;
-                    more.style.fontSize = '11px';
-                    more.style.color = '#666';
+                    more.className = 'more-bookings';
                     list.appendChild(more);
                 }
 
@@ -377,6 +362,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.appendChild(grid);
 
+        function goToToday() {
+            const now = new Date();
+            state.month = now.getMonth();
+            state.year = now.getFullYear();
+            renderCalendar(allBookings, targetId);
+        }
+
         function changeMonth(delta) {
             state.month += delta;
             if (state.month < 0) { state.month = 11; state.year -= 1; }
@@ -387,4 +379,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateDashboard();
     setInterval(updateDashboard, 30000);
+
+    // Re-render calendar on window resize to update text truncation
+    window.addEventListener('resize', () => {
+        if (lastData.length > 0) {
+            renderCalendar(lastData);
+        }
+    });
 });
