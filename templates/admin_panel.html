@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Control Panel</title>
     <!-- Tautan ke CSS Navigasi dan CSS Admin Panel yang baru -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
 </head>
 <body>
     
@@ -18,14 +18,19 @@
             <h1>Admin Panel</h1>
         </div>
         <div class="header-right">
-            <!-- Tautan navigasi publik -->
             <a href="{{ url_for('dashboard') }}">Home</a>
             <a href="{{ url_for('booking_form') }}">Booking</a>
             <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
             <a href="{{ url_for('scan_qr') }}">Scan QR</a>
             <a href="{{ url_for('login') }}">Login</a>
-            <!-- Tautan Logout untuk admin -->
-            <a href="{{ url_for('logout') }}" style="background-color: #D4002A; padding: 5px 10px; border-radius: 5px;">Logout</a>
+            <button class="hamburger" onclick="toggleDrawer()">☰</button>
+            <div class="drawer" id="drawer">
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('booking_form') }}">Booking</a>
+                <a href="{{ url_for('equipment_booking_form') }}">Equipment</a>
+                <a href="{{ url_for('scan_qr') }}">Scan QR</a>
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
         </div>
     </div>
 
@@ -125,6 +130,21 @@
 
     <!-- Tautan ke file JS baru untuk panel admin -->
     <script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
+    <script>
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('open');
+        }
+        
+        // Close drawer when clicking outside
+        document.addEventListener('click', function(event) {
+            const drawer = document.getElementById('drawer');
+            const hamburger = document.querySelector('.hamburger');
+            if (drawer.classList.contains('open') && !drawer.contains(event.target) && !hamburger.contains(event.target)) {
+                drawer.classList.remove('open');
+            }
+        });
+    </script>
+    
 </body>
 </html>
 

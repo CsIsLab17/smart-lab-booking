@@ -124,3 +124,124 @@ thead th {
 tbody tr:nth-child(even) {
     background-color: #fafcff;
 }
+
+/* --- CALENDAR STYLES --- */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.calendar-header div:first-child {
+    font-weight: 600;
+}
+
+.cal-prev, .cal-next, .cal-today {
+    background: #0033A0;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.cal-prev:hover, .cal-next:hover, .cal-today:hover {
+    background: #0055D4;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.calendar-cell {
+    border: 1px solid rgba(0,0,0,0.06);
+    padding: 6px;
+    min-height: 60px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.calendar-cell.empty {
+    background-color: transparent;
+}
+
+.calendar-cell.weekday-header {
+    font-size: 12px;
+    text-align: center;
+    font-weight: 600;
+    min-height: auto;
+    padding: 4px;
+}
+
+.calendar-cell.past {
+    background-color: #e8e8e8;
+}
+
+.calendar-cell.today {
+    background-color: rgba(230, 247, 255, 1);
+    border: 2px solid rgba(0, 33, 240, 1);
+}
+
+.day-number {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.booking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.booking-list div {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.more-bookings {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .calendar-grid {
+        gap: 4px;
+    }
+    
+    .calendar-cell {
+        padding: 4px;
+        min-height: 50px;
+    }
+    
+    .calendar-cell.weekday-header {
+        font-size: 11px;
+        padding: 2px;
+    }
+    
+    .day-number {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .booking-list div {
+        font-size: 11px;
+    }
+    
+    .more-bookings {
+        font-size: 10px;
+    }
+    
+    .cal-prev, .cal-next, .cal-today {
+        padding: 2px 6px;
+        font-size: 12px;
+    }
+}
