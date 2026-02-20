@@ -382,7 +382,6 @@ def handle_form_submission():
         all_records = sheet.get_all_records()
         new_start = time_to_minutes(data['waktuMulai'])
         new_end = time_to_minutes(data['waktuSelesai'])
-
         # Check for conflicts
         for record in all_records:
             if str(record.get('Tanggal Booking')) == data['tanggalBooking'] and record.get('Status') in ["Disetujui", "Menunggu Persetujuan", "Datang"]:
@@ -404,8 +403,12 @@ def handle_form_submission():
             data['tanggalBooking'], data['waktuMulai'], data['waktuSelesai'],
             final_purpose, data.get('jumlahOrang', '1'), "Menunggu Persetujuan", row_id
         ]
-        sheet.append_row(new_row, value_input_option='USER_ENTERED')
-        
+        #sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        all_values = sheet.get_all_values()
+        # 2. Find the row number exactly AFTER the last piece of data
+        target_row = len(all_values) + 1
+        sheet.insert_row(new_row, index=target_row, value_input_option='USER_ENTERED')
+
         email_body = create_approval_email_body(data, row_id)
         send_email(LAB_HEAD_EMAIL, f"New Lab Booking Request: {data['nama']}", email_body)
         
