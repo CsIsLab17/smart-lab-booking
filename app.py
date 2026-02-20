@@ -524,7 +524,13 @@ def handle_equipment_submission():
             row_id
         ]
         
-        sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        #sheet.append_row(new_row, value_input_option='USER_ENTERED')
+    
+        all_values = sheet.get_all_values()
+        # 2. Find the row number exactly AFTER the last piece of data
+        target_row = len(all_values) + 1
+        sheet.insert_row(new_row, index=target_row, value_input_option='USER_ENTERED')
+
         
         email_body = create_equipment_approval_email(data, row_id)
         send_email(LAB_HEAD_EMAIL, f"New Equipment Borrowing Request: {data.get('nama')}", email_body)
@@ -559,7 +565,12 @@ def handle_admin_lab_booking():
             "Disetujui", # Auto-approved
             row_id
         ]
-        sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        #sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        all_values = sheet.get_all_values()
+        # 2. Find the row number exactly AFTER the last piece of data
+        target_row = len(all_values) + 1
+        sheet.insert_row(new_row, index=target_row, value_input_option='USER_ENTERED')
+
         
         return jsonify({'status': 'success', 'message': 'Admin booking created and auto-approved!'})
     except Exception as e: 
@@ -591,7 +602,13 @@ def handle_admin_equipment_booking():
             row_id
         ]
         
-        sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        #sheet.append_row(new_row, value_input_option='USER_ENTERED')
+        
+        all_values = sheet.get_all_values()
+        # 2. Find the row number exactly AFTER the last piece of data
+        target_row = len(all_values) + 1
+        sheet.insert_row(new_row, index=target_row, value_input_option='USER_ENTERED')
+
         
         return jsonify({'status': 'success', 'message': 'Admin equipment loan created and auto-approved!'})
     except Exception as e: 
